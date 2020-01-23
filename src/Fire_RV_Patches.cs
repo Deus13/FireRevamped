@@ -123,7 +123,9 @@ namespace Fire_RV
             __instance.m_HeatSource.m_MaxTempIncreaseInnerRadius = fuel.m_HeatInnerRadius;
 
             float outradscale = (float)AccessTools.Method(typeof(Fire), "GetFireOuterRadiusScale").Invoke(__instance, null);
-            __instance.m_HeatSource.m_MaxTempIncreaseOuterRadius = fuel.m_HeatOuterRadius * outradscale;
+            HeatReservoir reservoir = Fire_RV.GetHeatReservoir(Utils.GetGuidFromGameObject(__instance.gameObject));
+            if (reservoir == null) __instance.m_HeatSource.m_MaxTempIncreaseOuterRadius = fuel.m_HeatOuterRadius * outradscale;
+            else __instance.m_HeatSource.m_MaxTempIncreaseOuterRadius = fuel.m_HeatOuterRadius * outradscale + reservoir.heatingsize;
             if (__instance.m_FX)
             {
                 __instance.m_FX.TriggerStage(___m_FireState, true, true);
@@ -171,6 +173,8 @@ namespace Fire_RV
                 __instance.m_FX.TriggerStage(FireState.FullBurn, true, false);
                 __instance.m_HeatSource.TurnOn();
             }
+            if (___m_MaxOnTODSeconds < ___m_ElapsedOnTODSeconds) ___m_MaxOnTODSeconds = ___m_ElapsedOnTODSeconds;
+         
 
             float old_time_remaining = __instance.GetRemainingLifeTimeSeconds();
             float old_max_tod = ___m_MaxOnTODSeconds;
@@ -224,13 +228,20 @@ namespace Fire_RV
 
             float fire_outer = (float)AccessTools.Method(typeof(Fire), "GetFireOuterRadiusScale").Invoke(__instance, null);
 
-            if (GameManager.GetWeatherComponent().IsIndoorEnvironment())
-            {
-                __instance.m_HeatSource.m_MaxTempIncreaseOuterRadius = + fuel.m_FuelSourceItem.m_HeatOuterRadius * fire_outer; //Mathf.Max(fuel.m_FuelSourceItem.m_HeatOuterRadius * fire_outer, __instance.m_HeatSource.m_MaxTempIncreaseOuterRadius);
-           
-            }
+            HeatReservoir reservoir = Fire_RV.GetHeatReservoir(Utils.GetGuidFromGameObject(__instance.gameObject));
 
-            __instance.m_HeatSource.m_MaxTempIncreaseOuterRadius = Mathf.Max(fuel.m_FuelSourceItem.m_HeatOuterRadius * fire_outer, __instance.m_HeatSource.m_MaxTempIncreaseOuterRadius);
+            float extrasize = 0;
+            if (reservoir != null)
+            {
+                reservoir.heatingsize += fuel.m_FuelSourceItem.m_HeatOuterRadius * fire_outer;
+                extrasize = reservoir.heatingsize;
+            }
+            //if (!GameManager.GetWeatherComponent().IsIndoorEnvironment()) __instance.m_HeatSource.m_MaxTempIncreaseOuterRadius = Mathf.Clamp(reservoir.heatingsize, 5f, 25f);
+
+            __instance.m_HeatSource.m_MaxTempIncreaseOuterRadius = extrasize;  //Mathf.Max(fuel.m_FuelSourceItem.m_HeatOuterRadius * fire_outer, __instance.m_HeatSource.m_MaxTempIncreaseOuterRadius);
+
+            
+
             __instance.m_FX.TriggerFlareupLarge();
 
             return false;
@@ -262,6 +273,7 @@ namespace Fire_RV
         private static bool Prefix(Panel_ActionPicker __instance, GameObject objectInteractedWith, ref List<Panel_ActionPicker.ActionPickerItemData> ___m_ActionPickerItemDataList, ref GameObject ___m_ObjectInteractedWith)
 
         {
+            
             Fire componentInChildren = objectInteractedWith.GetComponentInChildren<Fire>();
             Fire_RV.currentFire = componentInChildren;
             if (componentInChildren && componentInChildren.IsBurning() && GameManager.GetPlayerManagerComponent().PlayerHoldingTorchThatCanBeLit())
@@ -270,9 +282,10 @@ namespace Fire_RV
                 InterfaceManager.m_Panel_TorchLight.Enable(true);
                 return false;
             }
-
+            
             ___m_ActionPickerItemDataList.Clear();
             ___m_ActionPickerItemDataList.Add(new Panel_ActionPicker.ActionPickerItemData("ico_feed_fire", "GAMEPLAY_AddFuel", new Action(() => AccessTools.Method(typeof(Panel_ActionPicker), "FireInteractCallback").Invoke(__instance, null))));
+            
             if (componentInChildren && Fire_RV.canStokeFire(componentInChildren))
             {
                 ___m_ActionPickerItemDataList.Add(new Panel_ActionPicker.ActionPickerItemData("ico_campFireProgress", "Heap Fire", new Action(Fire_RV.tryHeapFire)));
@@ -281,11 +294,14 @@ namespace Fire_RV
             {
                 ___m_ActionPickerItemDataList.Add(new Panel_ActionPicker.ActionPickerItemData("ico_campFireProgress", "Spread Fire", new Action(Fire_RV.trySpreadFire)));
             }
+           
             if (componentInChildren && Fire_RV.canbreakdownFire(componentInChildren))
             {
+                
                 ___m_ActionPickerItemDataList.Add(new Panel_ActionPicker.ActionPickerItemData("ico_campFireProgress", "Breakdown", new Action(Fire_RV.tryBreakdownFire)));
             }
-                if (componentInChildren && componentInChildren.CanTakeTorch())
+            
+            if (componentInChildren && componentInChildren.CanTakeTorch())
             {              
                 ___m_ActionPickerItemDataList.Add(new Panel_ActionPicker.ActionPickerItemData("ico_torch", "GAMEPLAY_TakeTorch", new Action(() => AccessTools.Method(typeof(Panel_ActionPicker), "TakeTorchCallback").Invoke(__instance, null))));
             }
@@ -293,8 +309,9 @@ namespace Fire_RV
             ___m_ActionPickerItemDataList.Add(new Panel_ActionPicker.ActionPickerItemData("ico_water_prep", "GAMEPLAY_Water", new Action(() => AccessTools.Method(typeof(Panel_ActionPicker), "FireWaterCallback").Invoke(__instance, null))));
             ___m_ObjectInteractedWith = objectInteractedWith;
 
-
+            
             AccessTools.Method(typeof(Panel_ActionPicker), "EnableWithCurrentList").Invoke(__instance, null);
+            
             return false;
         }
     }
@@ -304,7 +321,9 @@ namespace Fire_RV
     {
         private static void Postfix(Panel_ActionPicker __instance)
         {
-            ActionPickerItem[] newList = new ActionPickerItem[8];
+            Debug.Log("Panel_ActionPicker");
+
+           ActionPickerItem[] newList = new ActionPickerItem[8];
             newList[0] = __instance.m_ActionPickerItemList[0];
             newList[1] = __instance.m_ActionPickerItemList[1];
             newList[2] = __instance.m_ActionPickerItemList[2];
@@ -702,6 +721,13 @@ namespace Fire_RV
 
             //update the reservoir
             myreservoir.Update(__instance);
+
+            if (!GameManager.GetWeatherComponent().IsIndoorEnvironment()) myreservoir.heatingsize = Mathf.Clamp(myreservoir.heatingsize, 5f, 25f);
+            else myreservoir.heatingsize = Mathf.Clamp(myreservoir.heatingsize, 5f, 1000f);
+
+            //myreservoir.heatingsize = fuel.m_FuelSourceItem.m_HeatOuterRadius * fire_outer + reservoir.heatingsize;
+            __instance.m_HeatSource.m_MaxTempIncreaseOuterRadius = myreservoir.heatingsize;
+            
 
             if (!fireOn && Mathf.Abs(myreservoir.temp) < 0.05) Fire_RV.RemoveReservoir(myreservoir.GUID);
 

@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Text;
 
+
 namespace Fire_RV
 {
     public static class Fire_RV
@@ -24,14 +25,130 @@ namespace Fire_RV
         public static string LastBurntItemsName;
 
         private static Dictionary<string, float> heatResSizes = new Dictionary<string, float> {
+{"BankA",200f},
+{"BarnHouseA",500f},
+{"BearCave",2000f},
+{"Boot",1},
+{"CampOffice",300f},
+{"CaveB",2000f},
+{"CaveC",2000f},
+{"CaveD",2000f},
+{"ChurchB",250f},
+{"CoastalHouseA",250f},
+{"CoastalHouseB",250f},
+{"CoastalHouseC",250f},
+{"CoastalHouseD",250f},
+{"CoastalHouseE",250f},
+{"CoastalHouseF",250f},
+{"CoastalHouseG",250f},
+{"CoastalHouseH",250f},
+{"CoastalRegion",1f},
+{"CommunityHall",250f},
+{"ConvenienceStoreA",200f},
+{"CrashMountainRegion",1},
+{"CrossroadsRegion",1},
+{"Dam",2000f},
+{"DamCaveTransitionZone",2000f},
+{"DamRiverTransitionZoneB",1},
+{"DamTrailerB",100f},
+{"DamTransitionZone",1},
+{"Empty",1},
+{"FarmHouseA",400f},
+{"FarmHouseABasement",150f},
+{"FarmHouseB",400f},
+{"FishingCabinA",100f},
+{"FishingCabinB",100f},
+{"FishingCabinC",100f},
+{"FishingCabinD",100f},
+{"GreyMothersHouseA",400f},
+{"GreyMothersHouseA_DialogueTest",400f},
+{"Gym_gear_indoors",1},
+{"Gym_gear_outdoors",1},
+{"Hangar",800f},
+{"HighwayMineTransitionZone",200f},
+{"HighwayTransitionZone",1f},
+{"HouseBasementC",100f},
+{"HouseBasementE",100f},
+{"HouseBasementF",100f},
+{"HouseBasementPV",100f},
+{"HuntingLodgeA",400f},
+{"IceCaveA",2000f},
+{"IceCaveB",2000f},
+{"IceCaveC",2000f},
+{"LakeCabinA",100f},
+{"LakeCabinB",100f},
+{"LakeCabinC",100f},
+{"LakeCabinD",100f},
+{"LakeCabinE",100f},
+{"LakeCabinF",100f},
+{"LakeRegion",100f},
+{"LighthouseA",600f},
+{"LoneLakeCabinA",100f},
+{"MainMenu",1},
+{"MaintenanceShedA",900f},
+{"MarshRegion",1f},
+{"MiltonHouseA",250f},
+{"MiltonHouseC",250f},
+{"MiltonHouseD",250f},
+{"MiltonHouseF1",250f},
+{"MiltonHouseF2",250f},
+{"MiltonHouseF3",250f},
+{"MiltonHouseG",250f},
+{"MiltonHouseH1",250f},
+{"MiltonHouseH2",250f},
+{"MiltonHouseH3",250f},
+{"MiltonTrailerB",250f},
+{"MineTransitionZone",2000f},
+{"MountainCaveA",2000f},
+{"MountainCaveB",2000f},
+{"MountainTownCaveA",2000f},
+{"MountainTownCaveB",2000f},
+{"MountainTownRegion",1f},
+{"PostOfficeA",150f},
+{"PrepperCacheA",100f},
+{"PrepperCacheAurora",100f},
+{"PrepperCacheB",100f},
+{"PrepperCacheC",100f},
+{"PrepperCacheD",100f},
+{"PrepperCacheE",100f},
+{"PrepperCacheEmpty",100f},
+{"PrepperCacheF",100f},
+{"PrepperCacheHank",100f},
+{"QuonsetGasStation",300f},
+{"RadioControlHut",200f},
+{"RavineTransitionZone",1},
+{"RiverValleyRegion",1},
+{"RiverValleyTransitionCave",2000f},
+{"RuralRegion",1},
+{"RuralStoreA",200f},
+{"SafeHouseA",200f},
+{"TracksRegion",1f},
+{"TrailerA",100f},
+{"TrailerB",100f},
+{"TrailerC",100f},
+{"TrailerD",100f},
+{"TrailerSShape",1},
+{"TransitionCHtoDP",1},
+{"TransitionCHtoPV",1},
+{"TransitionMLtoCH",1},
+{"TransitionMLtoPV",1},
+{"WhalingMine",2000f},
+{"WhalingShipA",600f},
+{"WhalingStationRegion",1},
+{"WhalingWarehouseA",1200f},
+
+
+        };
+
+        private static Dictionary<string, float> heatResSizesMax = new Dictionary<string, float> {
 {"BankA",1},
 {"BarnHouseA",1},
-{"BearCave",1},
+{"BearCave",20000f},
 {"Boot",1},
 {"CampOffice",1},
-{"CaveB",1},
-{"CaveC",1},
-{"CaveD",1},
+{"CaveB",20000f},
+{"CaveC",20000f},
+{"CaveD",20000f},
 {"ChurchB",1},
 {"CoastalHouseA",1},
 {"CoastalHouseB",1},
@@ -47,12 +164,12 @@ namespace Fire_RV
 {"CrashMountainRegion",1},
 {"CrossroadsRegion",1},
 {"Dam",1},
-{"DamCaveTransitionZone",1},
+{"DamCaveTransitionZone",20000f},
 {"DamRiverTransitionZoneB",1},
 {"DamTrailerB",1},
 {"DamTransitionZone",1},
 {"Empty",1},
-{"FarmHouseA",400f},
+{"FarmHouseA",1},
 {"FarmHouseABasement",1},
 {"FarmHouseB",1},
 {"FishingCabinA",1},
@@ -64,16 +181,16 @@ namespace Fire_RV
 {"Gym_gear_indoors",1},
 {"Gym_gear_outdoors",1},
 {"Hangar",1},
-{"HighwayMineTransitionZone",1},
+{"HighwayMineTransitionZone",20000f},
 {"HighwayTransitionZone",1f},
 {"HouseBasementC",1},
 {"HouseBasementE",1},
 {"HouseBasementF",1},
 {"HouseBasementPV",1},
 {"HuntingLodgeA",1},
-{"IceCaveA",1},
-{"IceCaveB",1},
-{"IceCaveC",1},
+{"IceCaveA",20000f},
+{"IceCaveB",20000f},
+{"IceCaveC",20000f},
 {"LakeCabinA",1},
 {"LakeCabinB",1},
 {"LakeCabinC",1},
@@ -97,11 +214,11 @@ namespace Fire_RV
 {"MiltonHouseH2",1},
 {"MiltonHouseH3",1},
 {"MiltonTrailerB",1},
-{"MineTransitionZone",1},
-{"MountainCaveA",1},
-{"MountainCaveB",1},
-{"MountainTownCaveA",1},
-{"MountainTownCaveB",1},
+{"MineTransitionZone",20000f},
+{"MountainCaveA",20000f},
+{"MountainCaveB",20000f},
+{"MountainTownCaveA",20000f},
+{"MountainTownCaveB",20000f},
 {"MountainTownRegion",1f},
 {"PostOfficeA",1},
 {"PrepperCacheA",1},
@@ -131,14 +248,11 @@ namespace Fire_RV
 {"TransitionCHtoPV",1},
 {"TransitionMLtoCH",1},
 {"TransitionMLtoPV",1},
-{"WhalingMine",1},
+{"WhalingMine",20000f},
 {"WhalingShipA",1},
 {"WhalingStationRegion",1f},
 {"WhalingWarehouseA",1},
-
-
         };
-
 
         private static Dictionary<string, float> heatResIns = new Dictionary<string, float> {
 {"BankA",1},
@@ -169,7 +283,7 @@ namespace Fire_RV
 {"DamTrailerB",1},
 {"DamTransitionZone",1},
 {"Empty",1},
-{"FarmHouseA",3},
+{"FarmHouseA",1},
 {"FarmHouseABasement",1},
 {"FarmHouseB",1},
 {"FishingCabinA",1},
@@ -313,7 +427,16 @@ namespace Fire_RV
         {
             StringArray stringArray = Utils.DeserializeObject<StringArray>(serialString);
             myreservoirs = Utils.DeserializeObject<List<HeatReservoir>>(stringArray.strings[0]);
-            Debug.Log("finished deserializing myreservoirs, count:"+myreservoirs.Count);
+            List < HeatReservoir > toDelete = new List<HeatReservoir>();
+
+            string version = GetCurrentVersion();
+            
+
+            foreach (HeatReservoir HR in myreservoirs) if(HR.ReservoirCreationVerion ==null || HR.ReservoirCreationVerion != version) toDelete.Add(HR);
+            foreach (HeatReservoir HR in toDelete) myreservoirs.Remove(HR);
+
+
+                Debug.Log("finished deserializing myreservoirs, count:"+myreservoirs.Count);
         }
 
 
@@ -323,6 +446,7 @@ namespace Fire_RV
             if (data != null)
             {
                 Fire_RV.deserialize(data);
+
             }
             if (data == null) myreservoirs.Clear();
             
@@ -333,9 +457,16 @@ namespace Fire_RV
             SaveGameSlots.SaveDataToSlot(gameMode, SaveGameSystem.m_CurrentEpisode, SaveGameSystem.m_CurrentGameId, name, SAVE_FILE_NAME, Fire_RV.serialize());
         }
 
+        internal static string GetCurrentVersion()
+        {
+            System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
+            System.Diagnostics.FileVersionInfo fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
+            return fvi.FileVersion;
+
+        }
 
 
-        internal static void Disable()
+            internal static void Disable()
         {
             //if (isEnabled)
             // {
@@ -517,20 +648,32 @@ namespace Fire_RV
         }
         public static bool canbreakdownFire(Fire fire)
         {
+            
             HeatReservoir heatReservoir = Fire_RV.GetHeatReservoir(Utils.GetGuidFromGameObject(((Component)(object)fire).gameObject));
 
-            List<String> names = heatReservoir.TrackedBurntNames;
+            bool flag = false;
+          
+            if (heatReservoir.TrackedBurntNames != null)
+            {
+               
+                List<String> names = heatReservoir.TrackedBurntNames;
+
+                if (names.Count > 0)
+                {
+                    if (names[names.Count - 1] != null&& names[names.Count - 1].StartsWith("GEAR_"))
+                    {
+                        GearItem gearItem = GameManager.GetPlayerManagerComponent().InstantiateItemAtPlayersFeet(names[names.Count - 1], 1);
+                        float cmins = Fire_RV.getCentigradeMinutes(fire) / Fire_RV.getStoveDurationModifier(((Component)(object)fire).gameObject);
+                        flag = GetConditionFromRemainingCentigradminutes(gearItem, cmins) > 0.05f;
 
 
-            GearItem gearItem = GameManager.GetPlayerManagerComponent().InstantiateItemAtPlayersFeet(names[names.Count-1], 1);
-            float cmins = Fire_RV.getCentigradeMinutes(fire) / Fire_RV.getStoveDurationModifier(((Component)(object)fire).gameObject);
-            bool flag = GetConditionFromRemainingCentigradminutes(gearItem, cmins) > 0.05f;
 
-
-
-            UnityEngine.Object.Destroy(gearItem.gameObject);
-            UnityEngine.Object.Destroy(gearItem);
-
+                        UnityEngine.Object.Destroy(gearItem.gameObject);
+                        UnityEngine.Object.Destroy(gearItem);
+                    }
+                }
+            }
+           
             return flag;
         }
         public static void breakdownFire(Fire fire)
@@ -952,19 +1095,24 @@ namespace Fire_RV
                 if (GUID == myreservoirs[i].GUID) myreservoirs.RemoveAt(i);
             }
         }
+
         public static void CreateHeatReservoir(string GUID)
         {
             if (myreservoirs == null) { myreservoirs = new List<HeatReservoir>(); }
             HeatReservoir newRes = new HeatReservoir();
             newRes.GUID = GUID;
-         
+            newRes.ReservoirCreationVerion = GetCurrentVersion();
             newRes.temp = 0;
  
             newRes.size_cmins = GetReservoirSize(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
-            newRes.insulation_factor = GetReservoirIns(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+            newRes.size_cmins_max = GetReservoirSizeMax(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+            if (newRes.size_cmins_max < newRes.size_cmins) newRes.size_cmins_max = newRes.size_cmins;
+
+                newRes.insulation_factor = GetReservoirIns(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
             newRes.fireLastOnAt = -1;
             newRes.lastUpdate = -1;
             newRes.embercmins = 0;
+            newRes.heatingsize = 5;
             newRes.TrackedBurntNames= new List<string>
             {
                 LastBurntItemsName
@@ -1016,7 +1164,41 @@ namespace Fire_RV
 
             }
             Debug.Log("Heat Reservoir Size:" + answ);
-            return answ;
+            return answ ;
+        }
+
+        internal static float GetReservoirSizeMax(string regname)
+        {
+            if (!heatResSizesMax.ContainsKey(regname))
+            {
+                Debug.LogWarningFormat("Scene \"{0}\" has not been associated with a heat reservoir:", regname);
+                return 0;
+            }
+
+            float answ = heatResSizesMax[regname];
+
+            if (answ == 1) //default value test flags
+            {
+                /*
+                if (GameManager.GetWeatherComponent().IsIndoorEnvironment() && !(GameManager.GetPlayerManagerComponent().m_IndoorSpaceTrigger && GameManager.GetPlayerManagerComponent().m_IndoorSpaceTrigger.m_UseOutdoorTemperature))
+                {
+                    //game definition of indoor environment, base insulation off of the indoor warmth variable
+                    answ = 900;
+                }
+                else if (GameManager.GetPlayerManagerComponent().m_IndoorSpaceTrigger)
+                {
+                    //back of cave, high reservoir low insulation
+                    answ = 1500;
+                }
+                else
+                {
+                    //outside
+                    answ = 1;
+                }*/
+
+            }
+            Debug.Log("Heat Reservoir Size Max:" + answ);
+            return answ ;
         }
 
         internal static float GetReservoirIns(string regname)
@@ -1067,13 +1249,17 @@ namespace Fire_RV
     public class HeatReservoir
     {
         public string GUID;
+        public string ReservoirCreationVerion;
         public float temp;
         public float insulation_factor;
         public float size_cmins;
+        public float size_cmins_max;        //for cave and mines
         public float lastUpdate;
         public float lastFireTemp;
         public float fireLastOnAt;
         public float lastBackgroundTemp;//this can be deleted
+
+        public float heatingsize;
 
         public float embercmins;
 
@@ -1115,9 +1301,15 @@ namespace Fire_RV
                     insulation_factor = Fire_RV.GetReservoirIns(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
                 }
 
+                float size = Mathf.Lerp(size_cmins, size_cmins_max, heatingsize / 2000f);                   // Pool size dependent on heatingsize, for lage cavesystems
 
-                float fuel_buff = step * (fuel_heat / size_cmins);
-                float rad_loss = step * temp / (insulation_factor * size_cmins);                                 //i think some rounding erros ocures hear
+                float fuel_buff = step * (fuel_heat / size);
+                float rad_loss = step * temp / (insulation_factor * size);
+
+                if (temp > 1    || ((fuel_buff - rad_loss)<0)&& temp!=0) heatingsize *= 1 + (fuel_buff - rad_loss) / temp;                           //expand/shrink size with increasing/falling res_temp
+                //else heatingsize = 10;
+
+
                 temp += fuel_buff - rad_loss;
                 
                 //Debug.Log("minutes passed:"+minutespassed+" fuel_buff:"+fuel_buff+"rad_loss"+rad_loss+"res_temp:"+ this.temp+ " fuelheat:"+fuel_heat);
@@ -1140,7 +1332,7 @@ namespace Fire_RV
             float cmins =Fire_RV.getCentigradeMinutes(fire);
             float temperature = (float)AccessTools.Field(typeof(Fire), "m_FuelHeatIncrease").GetValue(fire);
 
-          //  Debug.Log("cmins:" + cmins.ToString() + " embercmins:" + embercmins.ToString());
+           //Debug.Log("cmins:" + cmins.ToString() + " embercmins:" + embercmins.ToString());
 
             float accrate = 0.001f;
             float loserate = 1f;
