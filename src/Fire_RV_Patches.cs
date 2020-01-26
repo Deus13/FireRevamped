@@ -654,8 +654,7 @@ namespace Fire_RV
     }
 
 
-
-    [HarmonyPatch(typeof(Fire), "Update")]
+        [HarmonyPatch(typeof(Fire), "Update")]
     internal class Fire_Update_Prefix
     {
         private static bool Prefix(Fire __instance,  ref float ___m_BurningTimeTODHours, Campfire ___m_Campfire, bool ___m_IsPerpetual, float ___m_MaxOnTODSeconds, ref float ___m_ElapsedOnTODSeconds, ref float ___m_ElapsedOnTODSecondsUnmodified, FireState ___m_FireState, EffectsControllerFire ___m_FX, ref float ___m_FuelHeatIncrease, ref float ___m_EmberDurationSecondsTOD, ref bool ___m_UseEmbers)
@@ -671,10 +670,24 @@ namespace Fire_RV
 
                 if (reservoir != null)
                 {
+                    if (__instance.m_HeatSource == null)
+                    {
+                        
+                        __instance.m_HeatSource = new HeatSource();
+                        GameManager.GetHeatSourceManagerComponent().AddHeatSource(__instance.m_HeatSource);
+                    }
+                    if(!GameManager.GetHeatSourceManagerComponent().m_HeatSources.Contains(__instance.m_HeatSource))
+                    {
+                        
+                        GameManager.GetHeatSourceManagerComponent().AddHeatSource(__instance.m_HeatSource);
+                    }
                     reservoir.Update(__instance);
                     AccessTools.Field(typeof(HeatSource), "m_MaxTempIncrease").SetValue(__instance.m_HeatSource, (object)(reservoir.temp));
                     AccessTools.Field(typeof(HeatSource), "m_TempIncrease").SetValue(__instance.m_HeatSource, (object)(reservoir.temp));
                     if (reservoir.temp < 0.05f) Fire_RV.RemoveReservoir(reservoir.GUID);
+                    
+                    
+                    __instance.m_HeatSource.m_MaskTempIncrease = false;
                 }
 
                 Utils.SetActive(___m_FX.lighting.gameObject, false);
