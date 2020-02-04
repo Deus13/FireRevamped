@@ -555,6 +555,16 @@ namespace Fire_RV
             float temperature = (float)AccessTools.Field(typeof(Fire), "m_FuelHeatIncrease").GetValue(fire);
             return temperature/ time_remaining;
         }
+        public static bool ReworkedFireBlowOut(float MaxOnTODSeconds, float ElapsedOnTODSeconds, float TempIncrease)
+        {
+            float num = Mathf.Clamp(MaxOnTODSeconds - ElapsedOnTODSeconds, 0f, float.PositiveInfinity)* TempIncrease;
+            float blowoutzone = GameManager.GetFireManagerComponent().m_TODMinutesFadeOutFireAudio * 60f * GameManager.GetWindComponent().GetSpeedMPH() / (GameManager.GetSkillFireStarting().GetCurrentTierNumber() + 1);
+
+            Debug.Log("ReworkedFireBlowOut:"+ num.ToString() + "   "+ blowoutzone.ToString());
+            if (num < blowoutzone) return true;
+
+            return false;
+        }
 
         public static void tryHeapFire()
         {

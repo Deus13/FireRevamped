@@ -533,22 +533,14 @@ namespace Fire_RV
             }
             else
             {
-                if (!___m_Campfire)
-                {
-                    return false;
-                }
+                if (!___m_Campfire) return false;
+                
                 Vector3 position = __instance.transform.position;
                 position.y += 1f;
                 if (!GameManager.GetWindComponent().IsPositionOccludedFromWind(position))
                 {
-                  
-
-                    float num = Mathf.Clamp(___m_MaxOnTODSeconds - ___m_ElapsedOnTODSeconds, 0f, float.PositiveInfinity);
-                    float blowoutzone = GameManager.GetFireManagerComponent().m_TODMinutesFadeOutFireAudio * 60f * GameManager.GetWindComponent().GetSpeedMPH() / (GameManager.GetSkillFireStarting().GetCurrentTierNumber() + 1);
-
-
-
-                    if (num < blowoutzone) Fire_RV.breakdownFire(__instance);
+                    
+                    if (Fire_RV.ReworkedFireBlowOut(___m_MaxOnTODSeconds, ___m_ElapsedOnTODSeconds, __instance.GetCurrentTempIncrease())) Fire_RV.breakdownFire(__instance);
                 }
             }
 
@@ -557,6 +549,31 @@ namespace Fire_RV
         }
     }
 
+    [HarmonyPatch(typeof(Fire), "FireShouldBlowOutFromWind")]
+    internal class Fire_FireShouldBlowOutFromWind
+    {
+        private static bool Prefix(Fire __instance, Campfire ___m_Campfire,ref bool __result, float ___m_MaxOnTODSeconds, ref float ___m_ElapsedOnTODSeconds)
+        {
+            var setting = Fire_RVSettings.Instance;
+
+            if (!setting.WindReworked) return true;
+            if (!___m_Campfire) return true;
+
+            
+            Vector3 position = __instance.transform.position;
+            position.y += 1f;
+
+            if (!Fire_RV.ReworkedFireBlowOut(___m_MaxOnTODSeconds, ___m_ElapsedOnTODSeconds, __instance.GetCurrentTempIncrease())) return false;
+            else if(!GameManager.GetWindComponent().IsPositionOccludedFromWind(position))
+            {
+                __result = true;
+                
+            }
+            return true;
+
+
+        }
+    }
 
     [HarmonyPatch(typeof(Weather), "GetDebugWeatherText")]
     internal class Weather_GetDebugWeatherText
@@ -654,7 +671,7 @@ namespace Fire_RV
     }
 
 
-        [HarmonyPatch(typeof(Fire), "Update")]
+    [HarmonyPatch(typeof(Fire), "Update")]
     internal class Fire_Update_Prefix
     {
         private static bool Prefix(Fire __instance,  ref float ___m_BurningTimeTODHours, Campfire ___m_Campfire, bool ___m_IsPerpetual, float ___m_MaxOnTODSeconds, ref float ___m_ElapsedOnTODSeconds, ref float ___m_ElapsedOnTODSecondsUnmodified, FireState ___m_FireState, EffectsControllerFire ___m_FX, ref float ___m_FuelHeatIncrease, ref float ___m_EmberDurationSecondsTOD, ref bool ___m_UseEmbers)
@@ -699,7 +716,10 @@ namespace Fire_RV
             AccessTools.Method(typeof(Fire), "UpdateFireStage").Invoke(__instance, null);
             if (!___m_IsPerpetual)
             {
+
                 AccessTools.Method(typeof(Fire), "MaybeBlowOutFromWind").Invoke(__instance, null);
+
+                float deltaTime = GameManager.GetTimeOfDayComponent().GetTODSeconds(Time.deltaTime);
                 float f = 1;
                 if ((bool)___m_Campfire)
                 {
@@ -709,11 +729,17 @@ namespace Fire_RV
                     position.y += 1f;
                     if (!GameManager.GetWindComponent().IsPositionOccludedFromWind(position) && setting.WindReworked)
                     {
-                        f *= (1 + GameManager.GetWindComponent().GetSpeedMPH() / GameManager.GetFireManagerComponent().m_WindSpeedThatBlowsOutFires);
+                        float relativwind= GameManager.GetWindComponent().GetSpeedMPH() / GameManager.GetFireManagerComponent().m_WindSpeedThatBlowsOutFires;
+                        float temp = (float)AccessTools.Field(typeof(HeatSource), "m_TempIncrease").GetValue(__instance.m_HeatSource);
+
+                        f *= (1 + relativwind);
+
+                        temp /= (1 + relativwind* deltaTime/60f);
+                        AccessTools.Field(typeof(HeatSource), "m_TempIncrease").SetValue(__instance.m_HeatSource, temp);
                     }
                 }
-                ___m_ElapsedOnTODSecondsUnmodified += GameManager.GetTimeOfDayComponent().GetTODSeconds(Time.deltaTime);
-                ___m_ElapsedOnTODSeconds += GameManager.GetTimeOfDayComponent().GetTODSeconds(Time.deltaTime)* f;
+                ___m_ElapsedOnTODSecondsUnmodified += deltaTime;
+                ___m_ElapsedOnTODSeconds += deltaTime * f;
             }
 
             AccessTools.Method(typeof(Fire), "UpdateFireAudio").Invoke(__instance, null);
