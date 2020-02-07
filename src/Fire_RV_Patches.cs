@@ -683,6 +683,7 @@ namespace Fire_RV
 
             if (___m_FireState == FireState.Off)
             {
+                
                 HeatReservoir reservoir = Fire_RV.GetHeatReservoir(Utils.GetGuidFromGameObject(__instance.gameObject));             //we have to update 
 
                 if (reservoir != null)
@@ -713,6 +714,7 @@ namespace Fire_RV
                 //}
                 return false;
             }
+           
             AccessTools.Method(typeof(Fire), "UpdateFireStage").Invoke(__instance, null);
             if (!___m_IsPerpetual)
             {
@@ -741,7 +743,7 @@ namespace Fire_RV
                 ___m_ElapsedOnTODSecondsUnmodified += deltaTime;
                 ___m_ElapsedOnTODSeconds += deltaTime * f;
             }
-
+            
             AccessTools.Method(typeof(Fire), "UpdateFireAudio").Invoke(__instance, null);
 
             bool fireOn = __instance.m_HeatSource.IsTurnedOn();
@@ -749,7 +751,7 @@ namespace Fire_RV
             //if (!fireOn || __instance.IsEmbers()) { ___m_FuelHeatIncrease = 0; }
 
             HeatReservoir myreservoir = Fire_RV.GetHeatReservoir(Utils.GetGuidFromGameObject(__instance.gameObject));
-
+       
             if (myreservoir == null && fireOn)
             {
                 //shucks create new one...
@@ -758,18 +760,20 @@ namespace Fire_RV
 
             }
 
-            //update the reservoir
-            myreservoir.Update(__instance);
+            if (myreservoir != null)
+            {
+                //update the reservoir
+                myreservoir.Update(__instance);
 
-            if (!GameManager.GetWeatherComponent().IsIndoorEnvironment()) myreservoir.heatingsize = Mathf.Clamp(myreservoir.heatingsize, 5f, 25f);
-            else myreservoir.heatingsize = Mathf.Clamp(myreservoir.heatingsize, 5f, 1000f);
+                if (!GameManager.GetWeatherComponent().IsIndoorEnvironment()) myreservoir.heatingsize = Mathf.Clamp(myreservoir.heatingsize, 5f, 25f);
+                else myreservoir.heatingsize = Mathf.Clamp(myreservoir.heatingsize, 5f, 1000f);
 
-            //myreservoir.heatingsize = fuel.m_FuelSourceItem.m_HeatOuterRadius * fire_outer + reservoir.heatingsize;
-            __instance.m_HeatSource.m_MaxTempIncreaseOuterRadius = myreservoir.heatingsize;
-            
+                //myreservoir.heatingsize = fuel.m_FuelSourceItem.m_HeatOuterRadius * fire_outer + reservoir.heatingsize;
+                __instance.m_HeatSource.m_MaxTempIncreaseOuterRadius = myreservoir.heatingsize;
+            }
 
             if (!fireOn && Mathf.Abs(myreservoir.temp) < 0.05) Fire_RV.RemoveReservoir(myreservoir.GUID);
-
+      
             if (___m_ElapsedOnTODSeconds <= ___m_MaxOnTODSeconds)
             {
                 //fire is not in ember stage
@@ -813,7 +817,7 @@ namespace Fire_RV
                         break;
 
                 }
-                if ((myreservoir.embercmins > fireRivieSkill || ___m_FuelHeatIncrease > 0.05) && (___m_FuelHeatIncrease + myreservoir.temp) > 1)
+                if (myreservoir!=null&&(myreservoir.embercmins > fireRivieSkill || ___m_FuelHeatIncrease > 0.05) && (___m_FuelHeatIncrease + myreservoir.temp) > 1)
                 {
                     ___m_UseEmbers = true;
                     ___m_FX.TriggerStage(FireState.Starting_TinderSmolder, ___m_UseEmbers, false);
@@ -836,7 +840,7 @@ namespace Fire_RV
                 }
 
             }
-
+          
             return false;
 
         }
