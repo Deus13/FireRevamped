@@ -66,6 +66,12 @@ namespace Fire_RV
         [Description("Changes how wind effcts fire. If enabled wind will increase fuel consumption of fires and only blow them out ons the are smale enought.")]
         public bool WindReworked = true;
 
+        [Section("Forge:")]
+        [Name("Min Temperature")]
+        [Description("Adjust the requiered temperture for using the Forge for crafting.")]
+        [Slider(75f, 175f, 101)]
+        public float MinTemperature = 100f;
+
         public static void OnLoad()
         {
             Instance = JsonModSettingsLoader.Load<Fire_RVSettings>();

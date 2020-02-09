@@ -174,7 +174,7 @@ namespace Fire_RV
                 __instance.m_HeatSource.TurnOn();
             }
             if (___m_MaxOnTODSeconds < ___m_ElapsedOnTODSeconds) ___m_MaxOnTODSeconds = ___m_ElapsedOnTODSeconds;
-         
+
 
             float old_time_remaining = __instance.GetRemainingLifeTimeSeconds();
             float old_max_tod = ___m_MaxOnTODSeconds;
@@ -240,7 +240,7 @@ namespace Fire_RV
 
             __instance.m_HeatSource.m_MaxTempIncreaseOuterRadius = extrasize;  //Mathf.Max(fuel.m_FuelSourceItem.m_HeatOuterRadius * fire_outer, __instance.m_HeatSource.m_MaxTempIncreaseOuterRadius);
 
-            
+
 
             __instance.m_FX.TriggerFlareupLarge();
 
@@ -273,7 +273,7 @@ namespace Fire_RV
         private static bool Prefix(Panel_ActionPicker __instance, GameObject objectInteractedWith, ref List<Panel_ActionPicker.ActionPickerItemData> ___m_ActionPickerItemDataList, ref GameObject ___m_ObjectInteractedWith)
 
         {
-            
+
             Fire componentInChildren = objectInteractedWith.GetComponentInChildren<Fire>();
             Fire_RV.currentFire = componentInChildren;
             if (componentInChildren && componentInChildren.IsBurning() && GameManager.GetPlayerManagerComponent().PlayerHoldingTorchThatCanBeLit())
@@ -282,10 +282,10 @@ namespace Fire_RV
                 InterfaceManager.m_Panel_TorchLight.Enable(true);
                 return false;
             }
-            
+
             ___m_ActionPickerItemDataList.Clear();
             ___m_ActionPickerItemDataList.Add(new Panel_ActionPicker.ActionPickerItemData("ico_feed_fire", "GAMEPLAY_AddFuel", new Action(() => AccessTools.Method(typeof(Panel_ActionPicker), "FireInteractCallback").Invoke(__instance, null))));
-            
+
             if (componentInChildren && Fire_RV.canStokeFire(componentInChildren))
             {
                 ___m_ActionPickerItemDataList.Add(new Panel_ActionPicker.ActionPickerItemData("ico_campFireProgress", "Heap Fire", new Action(Fire_RV.tryHeapFire)));
@@ -294,24 +294,24 @@ namespace Fire_RV
             {
                 ___m_ActionPickerItemDataList.Add(new Panel_ActionPicker.ActionPickerItemData("ico_campFireProgress", "Spread Fire", new Action(Fire_RV.trySpreadFire)));
             }
-           
+
             if (componentInChildren && Fire_RV.canbreakdownFire(componentInChildren))
             {
-                
+
                 ___m_ActionPickerItemDataList.Add(new Panel_ActionPicker.ActionPickerItemData("ico_campFireProgress", "Breakdown", new Action(Fire_RV.tryBreakdownFire)));
             }
-            
+
             if (componentInChildren && componentInChildren.CanTakeTorch())
-            {              
+            {
                 ___m_ActionPickerItemDataList.Add(new Panel_ActionPicker.ActionPickerItemData("ico_torch", "GAMEPLAY_TakeTorch", new Action(() => AccessTools.Method(typeof(Panel_ActionPicker), "TakeTorchCallback").Invoke(__instance, null))));
             }
             ___m_ActionPickerItemDataList.Add(new Panel_ActionPicker.ActionPickerItemData("ico_cooking_pot", "GAMEPLAY_Cook", new Action(() => AccessTools.Method(typeof(Panel_ActionPicker), "FireCookCallback").Invoke(__instance, null))));
             ___m_ActionPickerItemDataList.Add(new Panel_ActionPicker.ActionPickerItemData("ico_water_prep", "GAMEPLAY_Water", new Action(() => AccessTools.Method(typeof(Panel_ActionPicker), "FireWaterCallback").Invoke(__instance, null))));
             ___m_ObjectInteractedWith = objectInteractedWith;
 
-            
+
             AccessTools.Method(typeof(Panel_ActionPicker), "EnableWithCurrentList").Invoke(__instance, null);
-            
+
             return false;
         }
     }
@@ -323,7 +323,7 @@ namespace Fire_RV
         {
             Debug.Log("Panel_ActionPicker");
 
-           ActionPickerItem[] newList = new ActionPickerItem[8];
+            ActionPickerItem[] newList = new ActionPickerItem[8];
             newList[0] = __instance.m_ActionPickerItemList[0];
             newList[1] = __instance.m_ActionPickerItemList[1];
             newList[2] = __instance.m_ActionPickerItemList[2];
@@ -517,8 +517,8 @@ namespace Fire_RV
             {
                 return false;
             }
-            if (!setting.WindReworked)           
-            { 
+            if (!setting.WindReworked)
+            {
                 if (__instance.FireShouldBlowOutFromWind())
                 {
 
@@ -526,7 +526,7 @@ namespace Fire_RV
                     float safezone = GameManager.GetFireManagerComponent().m_TODMinutesFadeOutFireAudio * 60f;
 
                     if (num > safezone)
-                    {   
+                    {
                         Fire_RV.breakdownFire(__instance);
                     }
                 }
@@ -534,12 +534,12 @@ namespace Fire_RV
             else
             {
                 if (!___m_Campfire) return false;
-                
+
                 Vector3 position = __instance.transform.position;
                 position.y += 1f;
                 if (!GameManager.GetWindComponent().IsPositionOccludedFromWind(position))
                 {
-                    
+
                     if (Fire_RV.ReworkedFireBlowOut(___m_MaxOnTODSeconds, ___m_ElapsedOnTODSeconds, __instance.GetCurrentTempIncrease())) Fire_RV.breakdownFire(__instance);
                 }
             }
@@ -552,22 +552,22 @@ namespace Fire_RV
     [HarmonyPatch(typeof(Fire), "FireShouldBlowOutFromWind")]
     internal class Fire_FireShouldBlowOutFromWind
     {
-        private static bool Prefix(Fire __instance, Campfire ___m_Campfire,ref bool __result, float ___m_MaxOnTODSeconds, ref float ___m_ElapsedOnTODSeconds)
+        private static bool Prefix(Fire __instance, Campfire ___m_Campfire, ref bool __result, float ___m_MaxOnTODSeconds, ref float ___m_ElapsedOnTODSeconds)
         {
             var setting = Fire_RVSettings.Instance;
 
             if (!setting.WindReworked) return true;
             if (!___m_Campfire) return true;
 
-            
+
             Vector3 position = __instance.transform.position;
             position.y += 1f;
 
             if (!Fire_RV.ReworkedFireBlowOut(___m_MaxOnTODSeconds, ___m_ElapsedOnTODSeconds, __instance.GetCurrentTempIncrease())) return false;
-            else if(!GameManager.GetWindComponent().IsPositionOccludedFromWind(position))
+            else if (!GameManager.GetWindComponent().IsPositionOccludedFromWind(position))
             {
                 __result = true;
-                
+
             }
             return true;
 
@@ -674,7 +674,7 @@ namespace Fire_RV
     [HarmonyPatch(typeof(Fire), "Update")]
     internal class Fire_Update_Prefix
     {
-        private static bool Prefix(Fire __instance,  ref float ___m_BurningTimeTODHours, Campfire ___m_Campfire, bool ___m_IsPerpetual, float ___m_MaxOnTODSeconds, ref float ___m_ElapsedOnTODSeconds, ref float ___m_ElapsedOnTODSecondsUnmodified, FireState ___m_FireState, EffectsControllerFire ___m_FX, ref float ___m_FuelHeatIncrease, ref float ___m_EmberDurationSecondsTOD, ref bool ___m_UseEmbers)
+        private static bool Prefix(Fire __instance, ref float ___m_BurningTimeTODHours, Campfire ___m_Campfire, bool ___m_IsPerpetual, float ___m_MaxOnTODSeconds, ref float ___m_ElapsedOnTODSeconds, ref float ___m_ElapsedOnTODSecondsUnmodified, FireState ___m_FireState, EffectsControllerFire ___m_FX, ref float ___m_FuelHeatIncrease, ref float ___m_EmberDurationSecondsTOD, ref bool ___m_UseEmbers)
         {
 
             var setting = Fire_RVSettings.Instance;
@@ -683,28 +683,28 @@ namespace Fire_RV
 
             if (___m_FireState == FireState.Off)
             {
-                
+
                 HeatReservoir reservoir = Fire_RV.GetHeatReservoir(Utils.GetGuidFromGameObject(__instance.gameObject));             //we have to update 
 
                 if (reservoir != null)
                 {
                     if (__instance.m_HeatSource == null)
                     {
-                        
+
                         __instance.m_HeatSource = new HeatSource();
                         GameManager.GetHeatSourceManagerComponent().AddHeatSource(__instance.m_HeatSource);
                     }
-                    if(!GameManager.GetHeatSourceManagerComponent().m_HeatSources.Contains(__instance.m_HeatSource))
+                    if (!GameManager.GetHeatSourceManagerComponent().m_HeatSources.Contains(__instance.m_HeatSource))
                     {
-                        
+
                         GameManager.GetHeatSourceManagerComponent().AddHeatSource(__instance.m_HeatSource);
                     }
                     reservoir.Update(__instance);
                     AccessTools.Field(typeof(HeatSource), "m_MaxTempIncrease").SetValue(__instance.m_HeatSource, (object)(reservoir.temp));
                     AccessTools.Field(typeof(HeatSource), "m_TempIncrease").SetValue(__instance.m_HeatSource, (object)(reservoir.temp));
                     if (reservoir.temp < 0.05f) Fire_RV.RemoveReservoir(reservoir.GUID);
-                    
-                    
+
+
                     __instance.m_HeatSource.m_MaskTempIncrease = false;
                 }
 
@@ -714,7 +714,7 @@ namespace Fire_RV
                 //}
                 return false;
             }
-           
+
             AccessTools.Method(typeof(Fire), "UpdateFireStage").Invoke(__instance, null);
             if (!___m_IsPerpetual)
             {
@@ -726,24 +726,24 @@ namespace Fire_RV
                 if ((bool)___m_Campfire)
                 {
 
-                    
+
                     Vector3 position = __instance.transform.position;
                     position.y += 1f;
                     if (!GameManager.GetWindComponent().IsPositionOccludedFromWind(position) && setting.WindReworked)
                     {
-                        float relativwind= GameManager.GetWindComponent().GetSpeedMPH() / GameManager.GetFireManagerComponent().m_WindSpeedThatBlowsOutFires;
+                        float relativwind = GameManager.GetWindComponent().GetSpeedMPH() / GameManager.GetFireManagerComponent().m_WindSpeedThatBlowsOutFires;
                         float temp = (float)AccessTools.Field(typeof(HeatSource), "m_TempIncrease").GetValue(__instance.m_HeatSource);
 
                         f *= (1 + relativwind);
 
-                        temp /= (1 + relativwind* deltaTime/60f);
+                        temp /= (1 + relativwind * deltaTime / 60f);
                         AccessTools.Field(typeof(HeatSource), "m_TempIncrease").SetValue(__instance.m_HeatSource, temp);
                     }
                 }
                 ___m_ElapsedOnTODSecondsUnmodified += deltaTime;
                 ___m_ElapsedOnTODSeconds += deltaTime * f;
             }
-            
+
             AccessTools.Method(typeof(Fire), "UpdateFireAudio").Invoke(__instance, null);
 
             bool fireOn = __instance.m_HeatSource.IsTurnedOn();
@@ -751,7 +751,7 @@ namespace Fire_RV
             //if (!fireOn || __instance.IsEmbers()) { ___m_FuelHeatIncrease = 0; }
 
             HeatReservoir myreservoir = Fire_RV.GetHeatReservoir(Utils.GetGuidFromGameObject(__instance.gameObject));
-       
+
             if (myreservoir == null && fireOn)
             {
                 //shucks create new one...
@@ -773,7 +773,7 @@ namespace Fire_RV
             }
 
             if (!fireOn && Mathf.Abs(myreservoir.temp) < 0.05) Fire_RV.RemoveReservoir(myreservoir.GUID);
-      
+
             if (___m_ElapsedOnTODSeconds <= ___m_MaxOnTODSeconds)
             {
                 //fire is not in ember stage
@@ -817,7 +817,7 @@ namespace Fire_RV
                         break;
 
                 }
-                if (myreservoir!=null&&(myreservoir.embercmins > fireRivieSkill || ___m_FuelHeatIncrease > 0.05) && (___m_FuelHeatIncrease + myreservoir.temp) > 1)
+                if (myreservoir != null && (myreservoir.embercmins > fireRivieSkill || ___m_FuelHeatIncrease > 0.05) && (___m_FuelHeatIncrease + myreservoir.temp) > 1)
                 {
                     ___m_UseEmbers = true;
                     ___m_FX.TriggerStage(FireState.Starting_TinderSmolder, ___m_UseEmbers, false);
@@ -840,7 +840,7 @@ namespace Fire_RV
                 }
 
             }
-          
+
             return false;
 
         }
@@ -911,7 +911,7 @@ namespace Fire_RV
                 GearItem gearItem = item;
                 if ((bool)gearItem)
                 {
-                    
+
 
                     FuelSourceItem fuelSourceItem = gearItem.m_FuelSourceItem;
                     if ((bool)fuelSourceItem)
@@ -960,7 +960,31 @@ namespace Fire_RV
         }
 
     }
+
+
+    [HarmonyPatch(typeof(Forge), "ForgeHotEnoughForUse")]
+    
+     internal static class Forge_ForgeHotEnoughForUse
+    {
+        private static void Prefix(Forge __instance)
+        {
+            var settings = Fire_RVSettings.Instance;
+            __instance.m_MinTemperatureForCrafting = settings.MinTemperature;
+
+            HeatReservoir myreservoir = Fire_RV.GetHeatReservoir(Utils.GetGuidFromGameObject(__instance.m_Fire.gameObject));
+            if (myreservoir != null)
+            {
+                __instance.m_MinTemperatureForCrafting -= myreservoir.temp;
+            }
+
+
+            
+        }
+
+    }
 }
+
+
 
 
 
