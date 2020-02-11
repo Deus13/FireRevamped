@@ -83,6 +83,7 @@
     <Compile Include="src\Fire_RV_Patches.cs" />
     <Compile Include="src\Lists.cs" />
     <Compile Include="src\Setting.cs" />
+    <Compile Include="src\TakeEmbers.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />

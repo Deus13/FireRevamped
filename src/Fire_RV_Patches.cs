@@ -288,11 +288,12 @@ namespace Fire_RV
 
             if (componentInChildren && Fire_RV.canStokeFire(componentInChildren))
             {
-                ___m_ActionPickerItemDataList.Add(new Panel_ActionPicker.ActionPickerItemData("ico_campFireProgress", "Heap Fire", new Action(Fire_RV.tryHeapFire)));
+                
+                ___m_ActionPickerItemDataList.Add(new Panel_ActionPicker.ActionPickerItemData("ico_campFireProgress", "Heap " + GetEmberStateAsText(componentInChildren), new Action(Fire_RV.tryHeapFire)));
             }
             if (componentInChildren && Fire_RV.canSpreadFire(componentInChildren))
             {
-                ___m_ActionPickerItemDataList.Add(new Panel_ActionPicker.ActionPickerItemData("ico_campFireProgress", "Spread Fire", new Action(Fire_RV.trySpreadFire)));
+                ___m_ActionPickerItemDataList.Add(new Panel_ActionPicker.ActionPickerItemData("ico_campFireProgress", "Spread "+ GetEmberStateAsText(componentInChildren), new Action(Fire_RV.trySpreadFire)));
             }
 
             if (componentInChildren && Fire_RV.canbreakdownFire(componentInChildren))
@@ -305,14 +306,26 @@ namespace Fire_RV
             {
                 ___m_ActionPickerItemDataList.Add(new Panel_ActionPicker.ActionPickerItemData("ico_torch", "GAMEPLAY_TakeTorch", new Action(() => AccessTools.Method(typeof(Panel_ActionPicker), "TakeTorchCallback").Invoke(__instance, null))));
             }
+            if (componentInChildren && Fire_RV.WulfFirePackInstalled())
+            {
+                ___m_ActionPickerItemDataList.Add(new Panel_ActionPicker.ActionPickerItemData("ico_skills_fireStarting", "GAMEPLAY_TakeEmbers", new Action(TakeEmbers.ExecuteTakeEmbers)));
+            }
             ___m_ActionPickerItemDataList.Add(new Panel_ActionPicker.ActionPickerItemData("ico_cooking_pot", "GAMEPLAY_Cook", new Action(() => AccessTools.Method(typeof(Panel_ActionPicker), "FireCookCallback").Invoke(__instance, null))));
             ___m_ActionPickerItemDataList.Add(new Panel_ActionPicker.ActionPickerItemData("ico_water_prep", "GAMEPLAY_Water", new Action(() => AccessTools.Method(typeof(Panel_ActionPicker), "FireWaterCallback").Invoke(__instance, null))));
             ___m_ObjectInteractedWith = objectInteractedWith;
 
+           
 
             AccessTools.Method(typeof(Panel_ActionPicker), "EnableWithCurrentList").Invoke(__instance, null);
 
             return false;
+        }
+
+        private static string GetEmberStateAsText(Fire componentInChildren)
+        {
+            var text = "Fire";
+            if (componentInChildren.IsEmbers()) text = "Embers";
+            return text;
         }
     }
 
@@ -911,12 +924,10 @@ namespace Fire_RV
                 GearItem gearItem = item;
                 if ((bool)gearItem)
                 {
-
-
                     FuelSourceItem fuelSourceItem = gearItem.m_FuelSourceItem;
                     if ((bool)fuelSourceItem)
                     {
-                        foreach (string tinder in Lists.tinderitems)
+                            foreach (string tinder in Lists.tinderitems)
                         {
                             if (gearItem.name == tinder)
                             {
@@ -938,9 +949,6 @@ namespace Fire_RV
                 GearItem gearItem = item;
                 if ((bool)gearItem)
                 {
-
-
-
                     FuelSourceItem fuelSourceItem = gearItem.m_FuelSourceItem;
                     if ((bool)fuelSourceItem)
                     {

@@ -411,6 +411,22 @@ namespace Fire_RV
         }
 
 
+        public static bool WulfFirePackInstalled()
+        {
+            try
+            {
+                string directoryName = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                Assembly assembly = Assembly.LoadFrom(Path.Combine(directoryName, "Fire-Pack.dll"));
+                return assembly != null;
+            }
+            catch
+            {
+            }
+            return false;
+        }
+
+
+
         private const string SAVE_FILE_NAME = "fire_rv-settings";
 
         public static string serialize()
@@ -551,7 +567,11 @@ namespace Fire_RV
 
         public static float getHeatTimeRatio(Fire fire)
         {
-            float time_remaining = fire.GetRemainingLifeTimeSeconds()/60f;
+            HeatReservoir myreservoir = Fire_RV.GetHeatReservoir(Utils.GetGuidFromGameObject(fire.gameObject));
+            float embertime = 0;
+            if (myreservoir != null) embertime = myreservoir.embercmins / fire.m_HeatSource.m_MaxTempIncrease;
+
+            float time_remaining = fire.GetRemainingLifeTimeSeconds()/60f + embertime;
             float temperature = (float)AccessTools.Field(typeof(Fire), "m_FuelHeatIncrease").GetValue(fire);
             return temperature/ time_remaining;
         }
@@ -1009,6 +1029,9 @@ namespace Fire_RV
                 case "Coal":    //GEAR_Coal
                     mymod = setting.CoalHeat;
                     break;
+                case "Char": //  1.0h 20c  20.0ch =>  4.0h 20c  80.0ch
+                    mymod = setting.CoalBurntime;
+                    break;
                 default:
                     Debug.Log("unrecognised fuel is treated as tinder:" + fuel.name);
                     mymod = setting.TinderHeat;
@@ -1050,9 +1073,12 @@ namespace Fire_RV
                 case "Hard"://  1.5h  8c  12.0ch =>  4.5h 16c  72.0ch
                     mymod = setting.WoodBurntime;
                     break;
-                case "Coal"://  1.0h 20c  20.0ch =>  4.0h 20c  80.0ch
+                case "Coal"://  1.0h 20c  20.0ch =>  4.0h 20c  160.0ch
                     mymod = setting.CoalBurntime;
-                    break;                         
+                    break;
+                case "Char": 
+                    mymod = setting.CoalBurntime;
+                    break;
                 default:
                     Debug.Log("unrecognised is treated as tinder:" + fuel.name);
                     mymod = setting.TinderBurntime;
