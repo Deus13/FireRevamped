@@ -773,8 +773,11 @@ namespace Fire_RV
 
             }
 
+
+            float myreservoirtemp = 0;
             if (myreservoir != null)
             {
+                myreservoirtemp = myreservoir.temp;
                 //update the reservoir
                 myreservoir.Update(__instance);
 
@@ -783,15 +786,17 @@ namespace Fire_RV
 
                 //myreservoir.heatingsize = fuel.m_FuelSourceItem.m_HeatOuterRadius * fire_outer + reservoir.heatingsize;
                 __instance.m_HeatSource.m_MaxTempIncreaseOuterRadius = myreservoir.heatingsize;
+
+                if (!fireOn && Mathf.Abs(myreservoirtemp) < 0.05) Fire_RV.RemoveReservoir(myreservoir.GUID);
             }
 
-            if (!fireOn && Mathf.Abs(myreservoir.temp) < 0.05) Fire_RV.RemoveReservoir(myreservoir.GUID);
+            
 
             if (___m_ElapsedOnTODSeconds <= ___m_MaxOnTODSeconds)
             {
                 //fire is not in ember stage
                 ___m_UseEmbers = false;
-                AccessTools.Field(typeof(HeatSource), "m_MaxTempIncrease").SetValue(__instance.m_HeatSource, (object)(___m_FuelHeatIncrease + myreservoir.temp));
+                AccessTools.Field(typeof(HeatSource), "m_MaxTempIncrease").SetValue(__instance.m_HeatSource, (object)(___m_FuelHeatIncrease + myreservoirtemp));
 
                 // do some weird score keeping
                 float num = ___m_ElapsedOnTODSecondsUnmodified / 60f / 60f;
@@ -989,6 +994,22 @@ namespace Fire_RV
             
         }
 
+    }
+    [HarmonyPatch(typeof(Inventory), "AddGear", null)]
+    public class Inventory_AddGear
+    {
+        private static void Postfix(GameObject go)
+        {
+            if(go == null)
+            {
+                return;
+            }
+            if (go.name.ToLower().Contains("activeemberbox"))
+            {
+                TakeEmbers.MayApplychanges(go);
+            }
+
+        }
     }
 }
 

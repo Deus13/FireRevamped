@@ -1,5 +1,6 @@
 ﻿using Harmony;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Fire_RV
 {
@@ -34,6 +35,11 @@ namespace Fire_RV
 
             InterfaceManager.m_Panel_FeedFire.ExitFeedFireInterface();
         }
-      
+        public static void MayApplychanges(GameObject go)
+        {
+            GearItem gearitem = go.GetComponent<GearItem>();
+            var setting = Fire_RVSettings.Instance;         
+            if (setting != null) gearitem.m_DailyHPDecay = 24f / setting.Embersboxduration;
+        }
     }
 }

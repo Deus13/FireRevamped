@@ -633,6 +633,7 @@ namespace Fire_RV
             InterfaceManager.m_Panel_GenericProgressBar.Launch("Spreading Fire", 5f, 2f, 0, null, null, false, true, new OnExitDelegate(spreadFire));
 
         }
+        
 
         public static void spreadFire(bool success, bool playerCancel, float progress)
         {
