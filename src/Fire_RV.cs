@@ -6,7 +6,7 @@ using System.IO;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Text;
-
+using MelonLoader.TinyJSON;
 
 namespace Fire_RV
 {
@@ -377,7 +377,14 @@ namespace Fire_RV
             //Debug.Log("Version {0}", Assembly.GetExecutingAssembly().GetName().Version);
 
 
-            uConsole.RegisterCommand("fire-log", FireLog);
+            uConsole.RegisterCommand("fire-log", new Action(FireLog));
+        }
+        private static System.Action LogReturn(System.Func<object> commandReturn)
+        {
+            return () => {
+                object result = commandReturn();
+                uConsole.Log(result == null ? "(null)" : result.ToString());
+            };
         }
 
         internal static void FireLog()
@@ -389,11 +396,11 @@ namespace Fire_RV
                 Fire fire = FireManager.m_Fires[i];
                 float dist = Vector3.Distance(pos, fire.transform.position);
                 Debug.Log("Fire " + i + " lit;" + fire.IsBurning() + " dist:" + dist + " fire GUID:" + Utils.GetGuidFromGameObject(fire.gameObject) + " heatsource GUID:" + Utils.GetGuidFromGameObject(fire.m_HeatSource.gameObject));
-                Debug.Log("\tHeat Reservoir " + Utils.SerializeObject(Fire_RV.GetHeatReservoir(Utils.GetGuidFromGameObject(fire.gameObject))));
+                Debug.Log("\tHeat Reservoir " + JSON.Dump(Fire_RV.GetHeatReservoir(Utils.GetGuidFromGameObject(fire.gameObject))));
 
             }
 
-            List<HeatSource> myheats = (List<HeatSource>)AccessTools.Field(typeof(HeatSourceManager), "m_HeatSources").GetValue(GameManager.GetHeatSourceManagerComponent());
+            var myheats = GameManager.GetHeatSourceManagerComponent().m_HeatSources;
             for (int i = 0; i < myheats.Count; i++)
             {
                 HeatSource myheat = myheats[i];
@@ -404,7 +411,7 @@ namespace Fire_RV
             for (int i = 0; i < myreservoirs.Count; i++)
             {
                 HeatReservoir myheatres = myreservoirs[i];
-                Debug.Log("Res " + i + ":"+ Utils.SerializeObject(myreservoirs[i]));
+                Debug.Log("Res " + i + ":" + JSON.Dump(myreservoirs[i]));
             }
 
 
@@ -434,7 +441,7 @@ namespace Fire_RV
             StringArray stringArray = new StringArray();
             stringArray.strings = new string[1];
             if (myreservoirs == null) myreservoirs = new List<HeatReservoir>();
-            stringArray.strings[0] = Utils.SerializeObject(myreservoirs);
+            stringArray.strings[0] = JSON.Dump(myreservoirs);
             Debug.Log("finished serializing myreservoirs, count:"+myreservoirs.Count);
             return (Utils.SerializeObject(stringArray));
         }
@@ -506,23 +513,24 @@ namespace Fire_RV
 
         public static string PrintSubHierarchy(GameObject obj,int depth)
         {
-            string tabs="";
-            for (int j = 0; j < depth; j++) tabs += "\t";
-            string myres = tabs + obj.name + " :" + obj.GetType() + " " + obj.transform.childCount + " components:";
-            Component[] mycomps = obj.GetComponents(typeof(Component));
-            for (int k = 0; k < mycomps.Length; k++)
-            {
-                myres += " "+k+":" + mycomps[k].GetType().Name;
-            }
-            myres += " Children:\n";
-            
+            //string tabs = "";
+            //for (int j = 0; j < depth; j++) tabs += "\t";
+            //string myres = tabs + obj.name + " :" + obj.GetType() + " " + obj.transform.childCount + " components:";
+            //Component[] mycomps = obj.GetComponents(typeof(Component));
+            //for (int k = 0; k < mycomps.Length; k++)
+            //{
+            //    myres += " " + k + ":" + mycomps[k].GetType().Name;
+            //}
+            //myres += " Children:\n";
 
-            // for (int j=0;j<obj.g)
-            for (int i = 0; i < obj.transform.childCount; i++)
-            {
-                myres = myres + PrintSubHierarchy(obj.transform.GetChild(i).gameObject,depth+1);
-            }
-            return myres;
+
+            //// for (int j=0;j<obj.g)
+            //for (int i = 0; i < obj.transform.childCount; i++)
+            //{
+            //    myres = myres + PrintSubHierarchy(obj.transform.GetChild(i).gameObject, depth + 1);
+            //}
+            //return myres;
+            return null;
         }
 
         public static string getFireType(GameObject curObj)
@@ -552,7 +560,7 @@ namespace Fire_RV
         public static float getCentigradeMinutes(Fire fire)
         {
             float time_remaining = fire.GetRemainingLifeTimeSeconds()/60f;
-            float temperature = (float)AccessTools.Field(typeof(Fire), "m_FuelHeatIncrease").GetValue(fire);
+            float temperature = fire.m_FuelHeatIncrease;
             return temperature * time_remaining  ;
         }
 
@@ -572,7 +580,7 @@ namespace Fire_RV
             if (myreservoir != null) embertime = myreservoir.embercmins / fire.m_HeatSource.m_MaxTempIncrease;
 
             float time_remaining = fire.GetRemainingLifeTimeSeconds()/60f + embertime;
-            float temperature = (float)AccessTools.Field(typeof(Fire), "m_FuelHeatIncrease").GetValue(fire);
+            float temperature = fire.m_FuelHeatIncrease;
             return temperature/ time_remaining;
         }
         public static bool ReworkedFireBlowOut(float MaxOnTODSeconds, float ElapsedOnTODSeconds, float TempIncrease)
@@ -588,15 +596,18 @@ namespace Fire_RV
 
         public static void tryHeapFire()
         {
-            InterfaceManager.m_Panel_GenericProgressBar.Launch("Heaping Fire",5f, 2f, 0, null, null, false, true, new OnExitDelegate(heapFire));
+  
+            InterfaceManager.m_Panel_GenericProgressBar.Launch("Heaping Fire",5f, 2f, 0, null, null, false, true, new Action<bool, bool, float>(heapFire));
         }
-        public static void heapFire(bool success, bool playerCancel, float progress)
+       
+        private static void heapFire(bool success, bool playerCancel, float progress)
         {
-            
-            if (!success)
-            {
-                HUDMessage.AddMessage(Localization.Get("GAMEPLAY_Failedattempttostartfire"), false);
-            }
+            heapFire(currentFire);
+
+            //if (!success)
+            //{
+            //    HUDMessage.AddMessage(Localization.Get("GAMEPLAY_Failedattempttostartfire"), false);
+            //}
             // GameManager.GetFireManagerComponent().UpdateSkillAfterFireCreationAttempt(success);
             // GameManager.GetFireManagerComponent().ExitFireStarting();
             /// AkSoundEngine.StopPlayingID(this.m_FireStarterLoop, GameManager.GetGameAudioManagerComponent().m_StopAudioFadeOutMicroseconds);
@@ -608,29 +619,30 @@ namespace Fire_RV
             //         component.Close();
             //     }
             //  }
-            if (success)
-            {
-                heapFire(currentFire);
-            }
+            //if (success)
+            //{
+            //    heapFire(currentFire);
+            //}
         }
 
-        public static void heapFire(Fire fire)
+        private static void heapFire(Fire fire)
         {
             Debug.Log("In heap fire:"+getHeatTimeRatio(fire));
             float time_remaining = fire.GetRemainingLifeTimeSeconds();
-            float temperature = (float)AccessTools.Field(typeof(Fire), "m_FuelHeatIncrease").GetValue(fire);
+            float temperature = fire.m_FuelHeatIncrease;
 
-            float MaxOnTod = (float)AccessTools.Field(typeof(Fire), "m_MaxOnTODSeconds").GetValue(fire);
+            float MaxOnTod = fire.m_MaxOnTODSeconds;
 
             float newMaxOnTod = MaxOnTod - time_remaining + time_remaining / 1.2f;
 
-            AccessTools.Field(typeof(Fire), "m_FuelHeatIncrease").SetValue(fire, temperature * 1.2f);
-            AccessTools.Field(typeof(Fire), "m_MaxOnTODSeconds").SetValue(fire, newMaxOnTod);
+            fire.m_FuelHeatIncrease=temperature * 1.2f;
+            fire.m_MaxOnTODSeconds = newMaxOnTod;
+
         }
 
         public static void trySpreadFire()
         {
-            InterfaceManager.m_Panel_GenericProgressBar.Launch("Spreading Fire", 5f, 2f, 0, null, null, false, true, new OnExitDelegate(spreadFire));
+            InterfaceManager.m_Panel_GenericProgressBar.Launch("Spreading Fire", 5f, 2f, 0, null, null, false, true, new Action<bool, bool, float>(spreadFire));
 
         }
         
@@ -650,20 +662,20 @@ namespace Fire_RV
         {
             Debug.Log("In spread fire:"+getHeatTimeRatio(fire));
             float time_remaining = fire.GetRemainingLifeTimeSeconds();
-            float temperature = (float)AccessTools.Field(typeof(Fire), "m_FuelHeatIncrease").GetValue(fire);
+            float temperature = fire.m_FuelHeatIncrease;
 
-            float MaxOnTod = (float)AccessTools.Field(typeof(Fire), "m_MaxOnTODSeconds").GetValue(fire);
+            float MaxOnTod = fire.m_MaxOnTODSeconds;
 
             float newMaxOnTod = MaxOnTod - time_remaining + time_remaining * 1.2f;
 
-            AccessTools.Field(typeof(Fire), "m_FuelHeatIncrease").SetValue(fire, temperature / 1.2f);
-            AccessTools.Field(typeof(Fire), "m_MaxOnTODSeconds").SetValue(fire, newMaxOnTod);
+           fire.m_FuelHeatIncrease= temperature / 1.2f;
+           fire.m_MaxOnTODSeconds=newMaxOnTod;
         }
 
 
         public static void tryBreakdownFire()
         {
-            InterfaceManager.m_Panel_GenericProgressBar.Launch("Breaking Down Fire", 5f, 2f, 0, null, null, false, true, new OnExitDelegate(breakdownFire));
+            InterfaceManager.m_Panel_GenericProgressBar.Launch("Breaking Down Fire", 5f, 2f, 0, null, null, false, true, new Action<bool, bool, float>(breakdownFire));
 
         }
         public static void breakdownFire(bool success, bool playerCancel, float progress)
@@ -730,7 +742,7 @@ namespace Fire_RV
                 i--;
                 if (names[i] != null && names[i].StartsWith("GEAR_"))
                 {
-                    Debug.LogFormat("[Fire_rv] {0}", "Names:  " + names[i] + "    i: " + i.ToString());
+                    Debug.Log("Names:  " + names[i] + "    i: " + i.ToString());
 
 
 
@@ -739,7 +751,7 @@ namespace Fire_RV
                     if (val != null)
                     {
 
-                        AccessTools.Field(typeof(GearItem), "m_RolledSpawnChance").SetValue(val, true);
+                        val.m_RolledSpawnChance=true;
                         val.m_SpawnChance = 100f;
                         val.m_BeenInPlayerInventory = true;
                         val.m_BeenInspected = true;
@@ -756,7 +768,7 @@ namespace Fire_RV
                             ((Component)(object)val).gameObject.transform.forward = vector;
                             Vector3 vector2 = position + vector * d;
                             vector2.y += 1f;
-                            val.StickToGroundAndOrientOnSlope(vector2, (NavMeshCheck)1);
+                            val.StickToGroundAndOrientOnSlope(vector2, (NavMeshCheck)1, 0);
                             ((Component)(object)val).gameObject.transform.position += new Vector3(0f, 0.3f, 0f);
                             Rigidbody component = ((Component)(object)val).GetComponent<Rigidbody>();
                             component.isKinematic = false;
@@ -774,12 +786,12 @@ namespace Fire_RV
                             SpawnedFuel.Insert(0, val);
                             deltas.Insert(0, cmin[i] + cimsGearwhenadded - cimreaining);
                             CminsFuel.Insert(0, cimsGearwhenadded);
-                            Debug.LogFormat("[Fire_rv] {0}", "Names:  " + names[i].ToString() + "   cmin:" + cmin[i].ToString() + "   cimsGearwhenadded:" + cimsGearwhenadded.ToString() + "   cimreaining:" + cimreaining.ToString() + "     deltas: " + (cmin[i] + cimsGearwhenadded - cimreaining).ToString());
+                            Debug.Log( "Names:  " + names[i].ToString() + "   cmin:" + cmin[i].ToString() + "   cimsGearwhenadded:" + cimsGearwhenadded.ToString() + "   cimreaining:" + cimreaining.ToString() + "     deltas: " + (cmin[i] + cimsGearwhenadded - cimreaining).ToString());
                             cimreaining = cmin[i];
                         }
                         else
                         {
-                            Debug.LogFormat("[Fire_rv] {0}", "DestroyNextUpdate:" + val.name);
+                            Debug.Log( "DestroyNextUpdate:" + val.name);
 
                             GearManager.DestroyNextUpdate(val, value: true);
                         }
@@ -804,18 +816,18 @@ namespace Fire_RV
 
             int ihigh = 0;
             int ilow = 0;
-            Debug.LogFormat("[Fire_rv] {0}", SpawnedFuel.Count.ToString());
+            Debug.Log( SpawnedFuel.Count.ToString());
             
             while(ihigh < SpawnedFuel.Count)
             {
-                Debug.LogFormat("[Fire_rv] {0}", "ihigh" + ihigh.ToString()+ "   ilow" + ihigh.ToString()+   "    Count"+ SpawnedFuel.Count.ToString());
+                Debug.Log("ihigh" + ihigh.ToString()+ "   ilow" + ihigh.ToString()+   "    Count"+ SpawnedFuel.Count.ToString());
                 
                 int n = (ihigh - ilow + 1);
                 //if (n == 0) Debug.LogFormat("[Fire_rv] {0}", "n is 0!!!!!!!!!! ");
                 int s = GetIndexOfsmalest(CminsFuel, ilow, ihigh);
                 if (s == -1) break;
 
-                Debug.LogFormat("[Fire_rv] {0}", deltas[ihigh].ToString() + "       "+ (CminsFuel[s] * n).ToString());
+                Debug.Log(deltas[ihigh].ToString() + "       "+ (CminsFuel[s] * n).ToString());
                 while (deltas[ihigh] > CminsFuel[s] * n && SpawnedFuel.Count!=1)
                 {
                     //Debug.LogFormat("[Fire_rv] {0}",  "       " + (CminsFuel[s] * n).ToString());
@@ -824,7 +836,7 @@ namespace Fire_RV
                     RemoveInRange(CminsFuel, tmpcimns, ilow, ihigh);
 
                     deltas[ihigh] -= tmpcimns * n;
-                    Debug.LogFormat("[Fire_rv] {0}", "item burnt off  " + s.ToString()+ "   deltas[ihigh]: "+deltas[ihigh].ToString());
+                    Debug.Log( "item burnt off  " + s.ToString()+ "   deltas[ihigh]: "+deltas[ihigh].ToString());
 
                     if (ihigh == s&&s>0) deltas[s - 1] += deltas[s];
                     GearManager.DestroyNextUpdate(SpawnedFuel[s], value: true);
@@ -840,7 +852,7 @@ namespace Fire_RV
                     n = (ihigh - ilow + 1);
                     s = GetIndexOfsmalest(CminsFuel, ilow, ihigh);
 
-                    Debug.LogFormat("[Fire_rv] {0}", deltas[ihigh].ToString() + "       " + (CminsFuel[s] * n).ToString());
+                    Debug.Log(deltas[ihigh].ToString() + "       " + (CminsFuel[s] * n).ToString());
                 }
 
                
@@ -873,7 +885,7 @@ namespace Fire_RV
 
                 float cimscondition = Fire_RV.getModifiedHeatIncrease(SpawnedFuel[i]) * Fire_RV.getModifiedDuration(SpawnedFuel[i]) * 60f;
                 totgearremoved += cimscondition;
-                Debug.LogFormat("cimreaining:  " + cimscondition.ToString() + " condition: " + condition.ToString());
+                Debug.Log("cimreaining:  " + cimscondition.ToString() + " condition: " + condition.ToString());
             }
 
             float tot = Fire_RV.getCentigradeMinutes(fire) / Fire_RV.getStoveDurationModifier(((Component)(object)fire).gameObject);
@@ -881,15 +893,15 @@ namespace Fire_RV
 
            
 
-            Debug.LogFormat("cimreaining:  " + totgearremoved.ToString() + " tot: " + tot.ToString());
+            Debug.Log("cimreaining:  " + totgearremoved.ToString() + " tot: " + tot.ToString());
 
             for (i = 0; i < HP.Count; i++) HP[i] = 0f;
 
 
             float remainingLifeTimeSeconds = fire.GetRemainingLifeTimeSeconds();
-            float num2 = (float)AccessTools.Field(typeof(Fire), "m_MaxOnTODSeconds").GetValue(fire) - remainingLifeTimeSeconds;
+            float num2 = fire.m_MaxOnTODSeconds - remainingLifeTimeSeconds;
            // AccessTools.Field(typeof(Fire), "m_FuelHeatIncrease").SetValue(fire, 0);
-            AccessTools.Field(typeof(Fire), "m_MaxOnTODSeconds").SetValue(fire, num2);
+            fire.m_MaxOnTODSeconds=num2;
 
         }
         public static float GetConditionFromRemainingCentigradminutes(GearItem fuel, float Centigradminutes)
@@ -939,10 +951,11 @@ namespace Fire_RV
                 {
                     return;
                 }
-                gearItem.OverrideGearCondition(GearStartCondition.Low);
+                gearItem.OverrideGearCondition(GearStartCondition.Low,true);
                 gearItem.m_TorchItem.m_ElapsedBurnMinutes = gearItem.m_TorchItem.GetModifiedBurnLifetimeMinutes();
-                object[] list = { TorchState.BurnedOut };
-                AccessTools.Method(typeof(TorchItem),"SetState").Invoke(gearItem.m_TorchItem,list);
+
+                gearItem.m_TorchItem.SetState(TorchState.BurnedOut);
+
 
                 Vector3 position = fire.transform.position;
                 float d = UnityEngine.Random.Range(0.3f, 1);
@@ -952,7 +965,7 @@ namespace Fire_RV
                 gearItem.gameObject.transform.forward = a;
                 Vector3 desiredPosition = position + a * d;
                 desiredPosition.y += 1f;
-                gearItem.StickToGroundAndOrientOnSlope(desiredPosition, NavMeshCheck.IgnoreNavMesh);
+                gearItem.StickToGroundAndOrientOnSlope(desiredPosition, NavMeshCheck.IgnoreNavMesh,0);
                 gearItem.gameObject.transform.position += new Vector3(0, 0.3f, 0);
                 Rigidbody component = gearItem.GetComponent<Rigidbody>();
                 component.isKinematic = false;
@@ -1000,7 +1013,7 @@ namespace Fire_RV
 
     public static float getModifiedHeatIncrease(GearItem fuel)
         {
-            var setting = Fire_RVSettings.Instance;
+            var setting = Fire_RVSettings.Settings.options;
             string name = fuel.name;
             float mymod = 1;
            
@@ -1047,7 +1060,7 @@ namespace Fire_RV
         }
         public static float getModifiedDuration(GearItem fuel)
         {
-            var setting = Fire_RVSettings.Instance;
+            var setting = Fire_RVSettings.Settings.options;
             string name = fuel.name;
             
             float mymod;
@@ -1165,7 +1178,7 @@ namespace Fire_RV
 
             // newRes.lastBackgroundTemp = GameManager.GetWeatherComponent().GetCurrentTemperatureWithoutHeatSources();
             Debug.Log("Creating new heat reservoir");
-            Debug.Log(Utils.SerializeObject(newRes));
+            Debug.Log(JSON.Dump(newRes));
             myreservoirs.Add(newRes);
         }
 
@@ -1174,7 +1187,7 @@ namespace Fire_RV
         {
             if (!heatResSizes.ContainsKey(regname))
             {
-                Debug.LogWarningFormat("Scene \"{0}\" has not been associated with a heat reservoir:", regname);
+                Debug.Log($"Scene \"{0}\" has not been associated with a heat reservoir: {regname}");
                 return 0;
             }
 
@@ -1208,7 +1221,7 @@ namespace Fire_RV
         {
             if (!heatResSizesMax.ContainsKey(regname))
             {
-                Debug.LogWarningFormat("Scene \"{0}\" has not been associated with a heat reservoir:", regname);
+                Debug.Log($"Scene \"{0}\" has not been associated with a heat reservoir:{regname}");
                 return 0;
             }
 
@@ -1242,7 +1255,7 @@ namespace Fire_RV
         {
             if (!heatResIns.ContainsKey(regname))
             {
-                Debug.LogWarningFormat("Scene \"{0}\" has not been associated with a heat insulation:", regname);
+                Debug.Log($"Scene \"{0}\" has not been associated with a heat insulation: {regname}");
                 return 0;
             }
 
@@ -1310,7 +1323,7 @@ namespace Fire_RV
         public void Update(Fire fire)
         {
 
-            float fireTemp = (float)AccessTools.Field(typeof(Fire), "m_FuelHeatIncrease").GetValue(fire);
+            float fireTemp = fire.m_FuelHeatIncrease;
 
             if (lastUpdate == -1) lastUpdate = Fire_RV.unitime();
 
@@ -1367,21 +1380,23 @@ namespace Fire_RV
         public bool updateEmber(Fire fire, float mins)
         {
             float cmins =Fire_RV.getCentigradeMinutes(fire);
-            float temperature = (float)AccessTools.Field(typeof(Fire), "m_FuelHeatIncrease").GetValue(fire);
+            float temperature = fire.m_FuelHeatIncrease;
 
-           //Debug.Log("cmins:" + cmins.ToString() + " embercmins:" + embercmins.ToString());
+           Debug.Log("cmins:" + cmins.ToString() + " embercmins:" + embercmins.ToString());
 
             float accrate = 0.001f;
             float loserate = 1f;
+            float emberFirepPoprtion = 0.1f;
 
 
-            if (cmins> embercmins&& cmins!=0)
+
+            if (cmins* emberFirepPoprtion > embercmins&& cmins!=0)
             {
-                float delta = (cmins - embercmins) * accrate * mins;
+                float delta = (emberFirepPoprtion * cmins - embercmins) * accrate * mins;
                 embercmins += delta;
 
                 float deltarel = 1 - delta / cmins;
-                AccessTools.Field(typeof(Fire), "m_FuelHeatIncrease").SetValue(fire, temperature* deltarel);
+                fire.m_FuelHeatIncrease=temperature* deltarel;
             }
            
             if(fire.IsEmbers())     
@@ -1395,7 +1410,7 @@ namespace Fire_RV
                 else tnew = 0;
 
              
-                AccessTools.Field(typeof(Fire), "m_FuelHeatIncrease").SetValue(fire, tnew);
+                fire.m_FuelHeatIncrease= tnew;
 
 
                 TrackedBurntNames.Clear();
@@ -1413,7 +1428,7 @@ namespace Fire_RV
 
                 TrackedBurntGearItemHP.Clear();
 
-                AccessTools.Field(typeof(Fire), "m_FuelHeatIncrease").SetValue(fire, 0);
+                fire.m_FuelHeatIncrease= 0;
 
             }
 

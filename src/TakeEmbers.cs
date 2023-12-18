@@ -6,11 +6,11 @@ namespace Fire_RV
 {
     internal class TakeEmbers
     {
-        internal static void AddFeedFireActions(List<Panel_ActionPicker.ActionPickerItemData> list)
-        {
-            list.Insert(2, new Panel_ActionPicker.ActionPickerItemData("ico_skills_fireStarting", "GAMEPLAY_TakeEmbers", ExecuteTakeEmbers));
-            //list.Insert(1, new Panel_ActionPicker.ActionPickerItemData("ico_forge", "Blow", ExecuteBlow));
-        }
+        //internal static void AddFeedFireActions(List<Panel_ActionPicker.ActionPickerItemData> list)
+        //{
+        //    list.Insert(2, new Panel_ActionPicker.ActionPickerItemData("ico_skills_fireStarting", "GAMEPLAY_TakeEmbers", new Action  ExecuteTakeEmbers));
+        //    //list.Insert(1, new Panel_ActionPicker.ActionPickerItemData("ico_forge", "Blow", ExecuteBlow));
+        //}
 
         internal static void ExecuteTakeEmbers()
         {
@@ -38,7 +38,7 @@ namespace Fire_RV
         public static void MayApplychanges(GameObject go)
         {
             GearItem gearitem = go.GetComponent<GearItem>();
-            var setting = Fire_RVSettings.Instance;         
+            var setting = Fire_RVSettings.Settings.options;         
             if (setting != null) gearitem.m_DailyHPDecay = 24f / setting.Embersboxduration;
         }
     }

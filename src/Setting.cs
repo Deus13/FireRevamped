@@ -2,12 +2,11 @@
 using System;
 using System.IO;
 using System.Reflection;
-using JsonModSettings;
 using ModSettings;
 
 namespace Fire_RV
 {
-    internal class Fire_RVSettings : JsonModSettingsBase<Fire_RVSettings>
+    internal class Fire_RVSettings : JsonModSettings
     {
 
 
@@ -78,10 +77,16 @@ namespace Fire_RV
         [Slider(0.5f, 36f, 72)]
         public float Embersboxduration = 18f;
 
-        public static void OnLoad()
+
+        internal static class Settings
         {
-            Instance = JsonModSettingsLoader.Load<Fire_RVSettings>();
-            Instance.SetFieldVisible(nameof(Embersboxduration), Fire_RV.WulfFirePackInstalled());
+            public static Fire_RVSettings options;
+            public static void OnLoad()
+            {
+                options = new Fire_RVSettings();
+                options.RefreshGUI();
+                options.AddToModSettings("Fire RV Settings");
+            }
         }
     }
 }
