@@ -1,7 +1,7 @@
 # FireRevamped
 
 
-This is a mod for **The Long Dark** v1.56 by Hinterland Games Studio, Inc.
+This is a mod for **The Long Dark** v2.06 by Hinterland Games Studio, Inc.
 
 
 This mod massivly changes the fire mechanics of the game.
