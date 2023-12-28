@@ -1,4 +1,4 @@
-# Fire Revampt
+# FireRevamped
 
 
 This is a mod for **The Long Dark** v1.56 by Hinterland Games Studio, Inc.
@@ -14,4 +14,3 @@ Fires will heat the surrounding area and allows for heating houses and caves for
 
 
 
-Requires the [Mod Loader](https://github.com/zeobviouslyfakeacc/ModLoaderInstaller) to run.
