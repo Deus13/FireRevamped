@@ -341,21 +341,21 @@ namespace ImprovedFires
                         //GearManager.DestroyNextUpdate(val,  false);
 
 
-                        if (Fire_RV.getStoveDurationModifier(((Component)(object)fire).gameObject) == 1f)
-                        {
-                            Vector3 position = ((Component)(object)fire).transform.position;
-                            float d = UnityEngine.Random.Range(0.75f, 1f);
-                            int num = UnityEngine.Random.Range(0, 359);
-                            Vector3 vector = Quaternion.Euler(0f, num, 0f) * Vector3.forward;
-                            ((Component)(object)val).gameObject.transform.forward = vector;
-                            Vector3 vector2 = position + vector * d;
-                            vector2.y += 1f;
-                            val.StickToGroundAndOrientOnSlope(vector2, (NavMeshCheck)1, 0);
-                            ((Component)(object)val).gameObject.transform.position += new Vector3(0f, 0.3f, 0f);
-                            Rigidbody component = ((Component)(object)val).GetComponent<Rigidbody>();
-                            component.isKinematic = false;
-                            component.velocity = new Vector3(0f, -0.01f, 0f);
-                        }
+                        //if (Fire_RV.getStoveDurationModifier(((Component)(object)fire).gameObject) == 1f)
+                        //{
+                        //    Vector3 position = ((Component)(object)fire).transform.position;
+                        //    float d = UnityEngine.Random.Range(0.75f, 1f);
+                        //    int num = UnityEngine.Random.Range(0, 359);
+                        //    Vector3 vector = Quaternion.Euler(0f, num, 0f) * Vector3.forward;
+                        //    ((Component)(object)val).gameObject.transform.forward = vector;
+                        //    Vector3 vector2 = position + vector * d;
+                        //    vector2.y += 1f;
+                        //    val.StickToGroundAndOrientOnSlope(vector2, (NavMeshCheck)1, 0);
+                        //    ((Component)(object)val).gameObject.transform.position += new Vector3(0f, 0.3f, 0f);
+                        //    Rigidbody component = ((Component)(object)val).GetComponent<Rigidbody>();
+                        //    component.isKinematic = false;
+                        //    component.velocity = new Vector3(0f, -0.01f, 0f);
+                        //}
 
 
 
@@ -915,17 +915,7 @@ namespace ImprovedFires
 
 
             }
-            else
-			{
-				fire.m_UseEmbers = false;
 
-
-				TrackedBurntItemsNames.Clear();
-
-				TrackedBurntItemsCentigradminutesFire.Clear();
-
-				TrackedBurntGearItemHP.Clear();
-			}
             return true;
         }
     }
