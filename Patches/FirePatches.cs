@@ -61,6 +61,7 @@ namespace ImprovedFires.Patches
 		{
 			private static bool Prefix(Fire __instance, FuelSourceItem fuel, bool maskTempIncrease)
 			{
+				HeatReservoir heatReservoir = Fire_RV.GetHeatReservoir(ObjectGuid.GetGuidFromGameObject(((Component)(object)__instance).gameObject));
 				GearItem component = fuel.GetComponent<GearItem>();
 				if (!component)
 				{
@@ -71,8 +72,8 @@ namespace ImprovedFires.Patches
 
 				__instance.m_HeatSource.TurnOn();
 				__instance.m_HeatSource.m_MaskTempIncrease = maskTempIncrease;
-				__instance.m_HeatSource.m_TempIncrease = 1.0f;
 				__instance.m_HeatSource.m_MaxTempIncrease += Fire_RV.getModifiedHeatIncrease(component);
+				__instance.m_FuelHeatIncrease = Fire_RV.getModifiedHeatIncrease(component);
 				__instance.m_HeatSource.m_MaxTempIncreaseInnerRadius = fuel.m_HeatInnerRadius;
 
 				float outradscale = __instance.GetFireOuterRadiusScale();
@@ -88,10 +89,9 @@ namespace ImprovedFires.Patches
 				__instance.m_HeatSource.m_TimeToReachMaxTempMinutes = Fire_RV.getStoveDurationModifier(__instance.gameObject) * Fire_RV.getModifiedDuration(component) * 60f * Fire_RV.skillFireHeatingFactor();
 
 
-				HeatReservoir heatReservoir = Fire_RV.GetHeatReservoir(ObjectGuid.GetGuidFromGameObject(((Component)(object)__instance).gameObject));
+				
 
 				//Debug.Log("getCentigradeMinutes: " +Fire_RV.getCentigradeMinutes(__instance).ToString());
-
 				heatReservoir.TrackedBurntItemsNames.Add(fuel.name);
 				heatReservoir.TrackedBurntItemsCentigradminutesFire.Add(0f);
 				heatReservoir.TrackedBurntGearItemHP.Add(component.CurrentHP);
@@ -101,6 +101,7 @@ namespace ImprovedFires.Patches
 
 			private static void Postfix(Fire __instance, FuelSourceItem fuel, bool maskTempIncrease)
 			{
+				if(__instance.m_HeatSource.m_TempIncrease < 1.0f) __instance.m_HeatSource.m_TempIncrease=1.0f;
 				//Debug.Log("getCentigradeMinutes: " + Fire_RV.getCentigradeMinutes(__instance).ToString());
 			}
 		}
@@ -645,6 +646,46 @@ namespace ImprovedFires.Patches
 			}
 
 		}
+
+		//[HarmonyPatch(typeof(FireManager), "CalculateFireStartSuccess")]
+
+		//internal static class FireManager_CalculateFireStartSuccess
+		//{
+		//	private static bool Prefix(FireManager __instance, out float __result, FireStarterItem starter, FuelSourceItem fuel, FireStarterItem accelerant)
+		//	{
+		//		//GameManager.GetSkillFireStarting().m_LevelWhereTinderNotRequired = 0;
+
+		//		float baseChance = GameManager.GetSkillFireStarting().m_BaseSuccessChance[GameManager.GetSkillFireStarting().GetCurrentTierNumber()];
+
+
+		//		if (fuel.name.StartsWith("GEAR_Softwood")) fuel.m_FireStartSkillModifier = -15f;
+		//		if (fuel.name.StartsWith("GEAR_Hardwood")) fuel.m_FireStartSkillModifier = -30f;
+
+		//		float accelerantModifier = 1f;
+		//		if (accelerant != null) accelerantModifier = 1f + accelerant.m_FireStartSkillModifier/100f;
+
+		//		//float tinderModifer = 0.5f + 0.1f * GameManager.GetSkillFireStarting().GetCurrentTierNumber();
+		//		//if (__instance.PlayerGetTinderChoice())
+		//		//{
+		//		//	Debug.Log(__instance.PlayerGetTinderChoice().name);
+		//		//	tinderModifer = 1.0f;
+		//		//	if (__instance.PlayerGetTinderChoice().name.StartsWith("GEAR_NewsprintRoll")) tinderModifer = 1.20f;
+		//		//	if (__instance.PlayerGetTinderChoice().name.StartsWith("GEAR_Newsprint")) tinderModifer = 1.16f;
+		//		//	if (__instance.PlayerGetTinderChoice().name.StartsWith("GEAR_PaperStack")) tinderModifer = 1.14f;
+		//		//	if (__instance.PlayerGetTinderChoice().name.StartsWith("GEAR_CashBundle")) tinderModifer = 1.10f;
+		//		//	if (__instance.PlayerGetTinderChoice().name.StartsWith("GEAR_BarkTinder")) tinderModifer = 1.05f;
+		//		//	if (__instance.PlayerGetTinderChoice().name.StartsWith("GEAR_Tinder")) tinderModifer = 1.0f;
+		//		//	if (__instance.PlayerGetTinderChoice().name.StartsWith("GEAR_CattailTinder")) tinderModifer = 0.95f;
+
+		//		//}
+
+		//		__result = baseChance * (1f + starter.m_FireStartSkillModifier / 100f) * (1f + fuel.m_FireStartSkillModifier / 100f) * accelerantModifier;
+
+			
+		//		return false;
+		//	}
+
+		//}
 
 	}
 

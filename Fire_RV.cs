@@ -1,4 +1,5 @@
-﻿using Il2Cpp;
+﻿
+using Il2Cpp;
 using MelonLoader.TinyJSON;
 using System;
 using System.Collections.Generic;
@@ -210,7 +211,7 @@ namespace ImprovedFires
         {
             float time_remaining = fire.GetRemainingLifeTimeSeconds() / 60f;
             float temperature = fire.m_HeatSource.m_MaxTempIncrease;
-            return temperature * time_remaining;
+			return temperature * time_remaining;
         }
 
         public static bool canStokeFire(Fire fire)
@@ -643,7 +644,7 @@ namespace ImprovedFires
             float answ = fuel.m_FuelSourceItem.m_HeatIncrease * fuel.GetNormalizedCondition() * mymod;
             // if (name.Substring(5, 4) == "Torc") answ = 1f *  mymod; //treat torches like sticks
 
-            ////Debug.Log("Fire.getModifiedHeatIncrease for " + name + ":" + fuel.m_FuelSourceItem.m_HeatIncrease + " to:" + answ);
+            //Debug.Log("Fire.getModifiedHeatIncrease for " + name + ":" + fuel.m_FuelSourceItem.m_HeatIncrease + " to:" + answ);
             return answ;
 
         }
@@ -892,11 +893,11 @@ namespace ImprovedFires
                 {
 
                     tnew = temperature * embercmins / embercminsold;
-                }
+					fire.m_HeatSource.m_MaxTempIncrease = tnew;
+					fire.m_FuelHeatIncrease = tnew;
+				}
                 else
                 {
-                    tnew = 0;
-                    embercmins = 0;
 
 					fire.m_UseEmbers = false;
 					fire.m_MaxOnTODSeconds = 0;
@@ -905,9 +906,7 @@ namespace ImprovedFires
 
                 }
 
-                fire.m_HeatSource.m_MaxTempIncrease = tnew;
-                fire.m_FuelHeatIncrease = tnew;
-
+                
                 TrackedBurntItemsNames.Clear();
 
                 TrackedBurntItemsCentigradminutesFire.Clear();
@@ -919,8 +918,6 @@ namespace ImprovedFires
             else
 			{
 				fire.m_UseEmbers = false;
-				fire.m_HeatSource.m_MaxTempIncrease = 0;
-				fire.m_FuelHeatIncrease = 0;
 
 
 				TrackedBurntItemsNames.Clear();
