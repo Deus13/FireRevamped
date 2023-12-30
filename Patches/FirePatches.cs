@@ -68,7 +68,7 @@ namespace ImprovedFires.Patches
 					return false;
 				}
 
-				
+
 
 				__instance.m_HeatSource.TurnOn();
 				__instance.m_HeatSource.m_MaskTempIncrease = maskTempIncrease;
@@ -89,7 +89,7 @@ namespace ImprovedFires.Patches
 				__instance.m_HeatSource.m_TimeToReachMaxTempMinutes = Fire_RV.getStoveDurationModifier(__instance.gameObject) * Fire_RV.getModifiedDuration(component) * 60f * Fire_RV.skillFireHeatingFactor();
 
 
-				
+
 
 				//Debug.Log("getCentigradeMinutes: " +Fire_RV.getCentigradeMinutes(__instance).ToString());
 				heatReservoir.TrackedBurntItemsNames.Add(fuel.name);
@@ -101,7 +101,7 @@ namespace ImprovedFires.Patches
 
 			private static void Postfix(Fire __instance, FuelSourceItem fuel, bool maskTempIncrease)
 			{
-				if(__instance.m_HeatSource.m_TempIncrease < 1.0f) __instance.m_HeatSource.m_TempIncrease=1.0f;
+				if (__instance.m_HeatSource.m_TempIncrease < 1.0f) __instance.m_HeatSource.m_TempIncrease = 1.0f;
 				//Debug.Log("getCentigradeMinutes: " + Fire_RV.getCentigradeMinutes(__instance).ToString());
 			}
 		}
@@ -139,9 +139,7 @@ namespace ImprovedFires.Patches
 
 				//Debug.Log("getCentigradeMinutes: " + (Fire_RV.getCentigradeMinutes(__instance) / Fire_RV.getStoveDurationModifier(((Component)(object)__instance).gameObject)).ToString());
 
-				heatReservoir.TrackedBurntItemsNames.Add(fuel.name);
-				heatReservoir.TrackedBurntItemsCentigradminutesFire.Add(Fire_RV.getCentigradeMinutes(__instance) / Fire_RV.getStoveDurationModifier(((Component)(object)__instance).gameObject));
-				heatReservoir.TrackedBurntGearItemHP.Add(fuel.CurrentHP);
+				
 
 
 				//   //Debug.Log("Fire:" + __instance.name);
@@ -155,14 +153,17 @@ namespace ImprovedFires.Patches
 				{
 					__instance.m_FX.TriggerStage(FireState.FullBurn, true, false);
 					__instance.m_HeatSource.TurnOn();
+					__instance.m_EmberTimer = 0;
 					old_time_remaining = 0;
 					old_max_tod = 0;
 				}
 				if (__instance.m_MaxOnTODSeconds < __instance.m_ElapsedOnTODSeconds) __instance.m_MaxOnTODSeconds = __instance.m_ElapsedOnTODSeconds;
 
+				heatReservoir.TrackedBurntItemsNames.Add(fuel.name);
+				heatReservoir.TrackedBurntItemsCentigradminutesFire.Add(Fire_RV.getCentigradeMinutes(__instance) / Fire_RV.getStoveDurationModifier(((Component)(object)__instance).gameObject));
+				heatReservoir.TrackedBurntGearItemHP.Add(fuel.CurrentHP);
 
-
-				float num = Fire_RV.getStoveDurationModifier(__instance.gameObject) * fuel.m_FuelSourceItem.GetModifiedBurnDurationHours(fuel.GetNormalizedCondition()) * 60f * 60f;
+				float num = Fire_RV.getStoveDurationModifier(__instance.gameObject) * Fire_RV.getModifiedDuration(fuel) * 60f * 60f;
 
 				if (!__instance.m_IsPerpetual)
 				{
@@ -222,18 +223,15 @@ namespace ImprovedFires.Patches
 				else if (!fuel.name.ToLower().StartsWith("gear_stick"))
 				{
 
-					if (old_time_remaining > 0) __instance.m_HeatSource.m_TempIncrease = (__instance.m_HeatSource.m_TempIncrease) * (old_time_remaining / __instance.GetRemainingLifeTimeSeconds() - Fire_RV.skillFireHeatingFactor());
-					else __instance.m_HeatSource.m_TempIncrease = (__instance.m_HeatSource.m_TempIncrease - Fire_RV.skillFireHeatingFactor());
-
+					__instance.m_HeatSource.m_TempIncrease = (__instance.m_HeatSource.m_TempIncrease) * ((degmins_old + heatReservoir.embercmins) / (degmins_total + heatReservoir.embercmins)) - Fire_RV.skillFireHeatingFactor();
 
 					__instance.m_HeatSource.m_TimeToReachMaxTempMinutes = ((1.0f - __instance.m_HeatSource.m_TempIncrease / __instance.m_HeatSource.m_MaxTempIncrease) * __instance.m_HeatSource.m_TimeToReachMaxTempMinutes + shape_duration * correction / 60f) * Fire_RV.skillFireHeatingFactor() * (1f - heatReservoir.embersPoprtion(__instance));
 				}
 
-
 				if (__instance.m_HeatSource.m_TempIncrease <= 0)
 				{
-					Fire_RV.breakdownFire(__instance);
-					__instance.TurnOffImmediate();
+					if (__instance.IsEmbers()) heatReservoir.embercmins /= 2;
+						Fire_RV.breakdownFire(__instance);
 				}
 
 
@@ -245,10 +243,12 @@ namespace ImprovedFires.Patches
 				return false;
 			}
 
-				
+
 			private static void Postfix(Fire __instance, GearItem fuel, bool inForge)
 			{
 				//Debug.Log("getCentigradeMinutes: " + (Fire_RV.getCentigradeMinutes(__instance) / Fire_RV.getStoveDurationModifier(((Component)(object)__instance).gameObject)).ToString());
+			
+
 			}
 		}
 
@@ -486,11 +486,11 @@ namespace ImprovedFires.Patches
 				new SaveManager().SaveHeatReservoirs();
 			}
 		}
-	
 
 
 
-	[HarmonyPatch(typeof(Fire), "Deserialize")]
+
+		[HarmonyPatch(typeof(Fire), "Deserialize")]
 		internal class Fire_Deserialize
 		{
 			private static void Prefix(Fire __instance, string text)
@@ -536,20 +536,20 @@ namespace ImprovedFires.Patches
 				HeatReservoir myreservoir = Fire_RV.GetHeatReservoir(ObjectGuid.GetGuidFromGameObject(__instance.gameObject));
 				myreservoir.Update(__instance);
 
-				if(__instance.m_UseEmbers == true)
-				{
-					__instance.m_FX.TriggerStage(FireState.Starting_TinderSmolder, __instance.m_UseEmbers, false);
-					__instance.UpdateFireStage();
+				if (__instance.m_UseEmbers == true  && __instance.m_EmberTimer>5) return false;
+				//{
+				//	__instance.m_FX.TriggerStage(FireState.Starting_TinderSmolder, __instance.m_UseEmbers, false);
+				//	__instance.UpdateFireStage();
 
-					return false;
-				}
+					
+				//}
 
 				return true;
-				
+
 			}
 		}
 
-			
+
 		//		[HarmonyPatch(typeof(Campfire), "GetHoverText")]
 		//internal class Campfire_GetHoverText
 		//{
@@ -575,7 +575,7 @@ namespace ImprovedFires.Patches
 		[HarmonyPatch(typeof(Panel_FeedFire), "RefreshFuelSources")]
 		internal static class Panel_FeedFire_RefreshFuelSources
 		{
-			
+
 			private static void Prefix(Panel_FeedFire __instance)
 			{
 
@@ -647,46 +647,24 @@ namespace ImprovedFires.Patches
 
 		}
 
-		//[HarmonyPatch(typeof(FireManager), "CalculateFireStartSuccess")]
+		[HarmonyPatch(typeof(FireManager), "CalculateFireStartSuccess")]
 
-		//internal static class FireManager_CalculateFireStartSuccess
-		//{
-		//	private static bool Prefix(FireManager __instance, out float __result, FireStarterItem starter, FuelSourceItem fuel, FireStarterItem accelerant)
-		//	{
-		//		//GameManager.GetSkillFireStarting().m_LevelWhereTinderNotRequired = 0;
+		internal static class FireManager_CalculateFireStartSuccess
+		{
+			private static bool Prefix(FireManager __instance, out float __result, FireStarterItem starter, FuelSourceItem fuel, FireStarterItem accelerant)
+			{
 
-		//		float baseChance = GameManager.GetSkillFireStarting().m_BaseSuccessChance[GameManager.GetSkillFireStarting().GetCurrentTierNumber()];
+				__result = 0;
+				if (fuel.name.StartsWith("GEAR_Softwood")) fuel.m_FireStartSkillModifier = -15f;
+				if (fuel.name.StartsWith("GEAR_Hardwood")) fuel.m_FireStartSkillModifier = -30f;
 
 
-		//		if (fuel.name.StartsWith("GEAR_Softwood")) fuel.m_FireStartSkillModifier = -15f;
-		//		if (fuel.name.StartsWith("GEAR_Hardwood")) fuel.m_FireStartSkillModifier = -30f;
+				return true;
+			}
 
-		//		float accelerantModifier = 1f;
-		//		if (accelerant != null) accelerantModifier = 1f + accelerant.m_FireStartSkillModifier/100f;
 
-		//		//float tinderModifer = 0.5f + 0.1f * GameManager.GetSkillFireStarting().GetCurrentTierNumber();
-		//		//if (__instance.PlayerGetTinderChoice())
-		//		//{
-		//		//	Debug.Log(__instance.PlayerGetTinderChoice().name);
-		//		//	tinderModifer = 1.0f;
-		//		//	if (__instance.PlayerGetTinderChoice().name.StartsWith("GEAR_NewsprintRoll")) tinderModifer = 1.20f;
-		//		//	if (__instance.PlayerGetTinderChoice().name.StartsWith("GEAR_Newsprint")) tinderModifer = 1.16f;
-		//		//	if (__instance.PlayerGetTinderChoice().name.StartsWith("GEAR_PaperStack")) tinderModifer = 1.14f;
-		//		//	if (__instance.PlayerGetTinderChoice().name.StartsWith("GEAR_CashBundle")) tinderModifer = 1.10f;
-		//		//	if (__instance.PlayerGetTinderChoice().name.StartsWith("GEAR_BarkTinder")) tinderModifer = 1.05f;
-		//		//	if (__instance.PlayerGetTinderChoice().name.StartsWith("GEAR_Tinder")) tinderModifer = 1.0f;
-		//		//	if (__instance.PlayerGetTinderChoice().name.StartsWith("GEAR_CattailTinder")) tinderModifer = 0.95f;
 
-		//		//}
-
-		//		__result = baseChance * (1f + starter.m_FireStartSkillModifier / 100f) * (1f + fuel.m_FireStartSkillModifier / 100f) * accelerantModifier;
-
-			
-		//		return false;
-		//	}
-
-		//}
+		}
 
 	}
-
 }

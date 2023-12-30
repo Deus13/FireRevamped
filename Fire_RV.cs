@@ -363,7 +363,7 @@ namespace ImprovedFires
                         val.m_CurrentHP = HP[i];
                         
 
-						//Debug.Log("val.m_CurrentHP:  " + HP[i]);
+
 						float cimsGearwhenadded = Fire_RV.getModifiedHeatIncrease(val) * Fire_RV.getModifiedDuration(val) * 60f;
 
                         if (HP[i] > 0.01f)
@@ -376,7 +376,7 @@ namespace ImprovedFires
                         }
                         else
                         {
-                            //Debug.Log("DestroyNextUpdate:" + val.name);
+//Debug.Log("DestroyNextUpdate:" + val.name);
 
                             GearManager.DestroyNextUpdate(val, value: true);
                         }
@@ -634,7 +634,7 @@ namespace ImprovedFires
                     mymod = setting.CoalHeat;
                     break;
                 case "Char": //  1.0h 20c  20.0ch =>  4.0h 20c  80.0ch
-                    mymod = setting.CoalBurntime;
+                    mymod = setting.CoalHeat;
                     break;
                 default:
                     //Debug.Log("unrecognised fuel is treated as tinder:" + fuel.name);
@@ -862,9 +862,10 @@ namespace ImprovedFires
             if (cmins != 0)
             {
                 fire.m_UseEmbers = false;
+				fire.m_EmberTimer = 0;
 
 				////Debug.Log("cmins:" + cmins.ToString() + " embercmins:" + embercmins.ToString());
-                if (cmins < embercmins) accrate *= cmins / Math.Max(1f, embercmins);
+				if (cmins < embercmins) accrate *= cmins / Math.Max(1f, embercmins);
 
 
                 float delta = (cmins - embercmins) * accrate * mins;
@@ -881,8 +882,7 @@ namespace ImprovedFires
             {
                 fire.m_UseEmbers = true;
 				////Debug.Log(" embercmins:" + embercmins.ToString());
-                fire.m_EmberTimer = 0;
-                fire.m_EmberDurationSecondsTOD = 300f;
+                fire.m_EmberDurationSecondsTOD = float.PositiveInfinity;
 
                 float embercminsold = embercmins;
                 float delta = loserate * mins * temperature;
@@ -912,9 +912,13 @@ namespace ImprovedFires
                 TrackedBurntItemsCentigradminutesFire.Clear();
 
                 TrackedBurntGearItemHP.Clear();
-
-
             }
+            else
+            {
+                fire.m_EmberDurationSecondsTOD = 5;
+
+			}
+
 
             return true;
         }
